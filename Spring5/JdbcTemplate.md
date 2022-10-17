@@ -21,18 +21,18 @@
    3. `spring-orm-版本号.jar`如果spring整合其他框架（Mybatis等其他时），这里用Mysql，所以可加可不加。（？）
 
 2. 在spring配置文件中**配置数据库的连接池**（可用下面模板）
-
-```xml
-<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
-        <property name="url" value="jdbc:mysql:///XXXXXX?characterEncoding=utf8&useUnicode=true&useSSL=false&serverTimezone=UTC"/>
-        <property name="username" value="root" />
-        <property name="password" value="123456" />
-    </bean>
-    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <property name="dataSource" ref="dataSource" />
-    </bean>
-```
+   
+   ```xml
+       <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+           <property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+           <property name="url" value="jdbc:mysql://localhost:3306/mydb?characterEncoding=utf8&useUnicode=true&useSSL=false&autoReconnect=true"/>
+           <property name="username" value="root" />
+           <property name="password" value="root" />
+       </bean>
+       <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+           <property name="dataSource" ref="dataSource" />
+       </bean>
+   ```
 
 注意：&报错，修改方式：将其转义。
 
@@ -40,7 +40,7 @@
 
 3. 配置JdbcTemplate对象，注入DataSource对象。即创建它的bean的示例（**上面代码已经写好了**）
 
-注入DataSource源信息（父类有**对象类型属性**叫DataSource，其自带set方法，可用它来注入注入，而不必用有参构造方法注入。）
+注入DataSource源信息（父类有**对象类型属性**叫DataSource，其自带set方法，可用它来注入，而不必用有参构造方法注入。）
 
 ref指的是我们创建类属性对象，添加引用上面创建的bean连接池（**它就是数据源信息**）。
 
@@ -171,6 +171,10 @@ public class BookDaoImpl implements BookDao{
   因为之前引入了bookDao对象（接口类型体现多态），那我们这里可以加一个方法：
   
   接收book实体示例，然后调用bookDao封装好的add方法。
+  
+  ```java
+  
+  ```
 
 ## 修改和删除功能
 
