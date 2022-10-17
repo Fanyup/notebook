@@ -338,8 +338,6 @@ result3
      After..
      
      AfterThrowing..
-     
-     
 
 ### 4.切面
 
@@ -532,8 +530,6 @@ add..
 
 返回的还是User类，但这个类中间被代理过了！
 
-
-
 下面说一些细节问题：
 
 ### 提取相同的切入点
@@ -549,8 +545,6 @@ add..
 示例：**@Before(value="porintdemo()")**
 
 pointdemo()是我们定义的方法名，该方法使用@Pointcut提取切入点注解。
-
-
 
 ### 增强类设置优先级
 
