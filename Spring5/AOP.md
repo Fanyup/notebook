@@ -558,7 +558,7 @@ pointdemo()是我们定义的方法名，该方法使用@Pointcut提取切入点
    
    **<mark>数字越小，优先级越高</mark>**
 
-## AspectJ配置文件方式
+## AspectJ:xml配置文件方式
 
 一般很少用到，这部分仅作了解。
 

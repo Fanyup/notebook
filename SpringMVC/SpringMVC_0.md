@@ -10,6 +10,10 @@ maven中导入依赖，有网环境下自动导入jar包。
 
 实现web功能模块
 
+基于spring，**容器的概念**，SpringMVC会创建容器，WebApplicationContext.它作为容器是创建和管理控制器对象的，使用@Controller注解创建控制器对象（用Ioc的概念）。底层访问依然是Servlet-DispatcherServlet(中央调度器)。
+
+中央调度器的作用是创建容器（WebApplicationContext容器和容器对象）（读取配置容器，容器对象放到全局作用域中就可以使用了（进而创建控制器对象）），2.（在web.xml中注册）负责接收请求，显示处理结果（这和Servlet是一样的）
+
 ## 1、什么是MVC
 
 是一种软件架构的思想，将软件按照**模型、视图、控制**器来划分（实现当前完整的web功能）
@@ -20,7 +24,7 @@ JavaBean分为两类：
 
 - 一类称为实体类Bean
   
-  **专门存储业务数据的**，入Student、User等
+  **专门存储业务数据的**，如Student、User等
   
   属性、属性值结构
 
@@ -117,7 +121,7 @@ index.jsp/main.jsp/...
 
 因为现在做的是web应用了，所有选择（新建）模块Model是Maven，这里选不选骨架都OK，选的话找到web模板：`maven-archetype-webapp`
 
-这里出现了一个小问题：还是跟网络环境有关，记得像pip安装一样，把节点关了再导，否则配置会爆红的，即网络下载失败。
+~~这里出现了一个小问题：还是跟网络环境有关，记得像pip安装一样，把节点关了再导，否则配置会爆红的，即网络下载失败。~~问题解决了，是我的maven版本与idea不适配，换成3.6.3版本就能用了。
 
 1. 指定java包【右键Make Directory as】是【Sources Root】——它得变蓝才正确。
 
@@ -241,7 +245,7 @@ g跟spring的处理逻辑完全一样：**加载配置文件，获取对象**。
 
 为什么name报错呢？
 
-springmvc创建容器时，读取的配置文件默认时/WEB-INF/`<servlet-name>-servlet.xml`
+springmvc创建容器时，读取的配置文件默认是/WEB-INF/`<servlet-name>-servlet.xml`
 
 目录是固定的，所以我们一般自定义springmvc读取的配置文件的位置，用`<init-param>`
 
@@ -381,7 +385,7 @@ public class MyController {
         //现在要做的是将数据和视图往返回类型填充
         ModelAndView mv = new ModelAndView();
         //添加数据，框架在请求的最后把数据放到request作用域
-        //相当于request.settAttribute("msg,"欢迎使用..."）
+        //相当于request.setAttribute("msg,"欢迎使用..."）
         //参数名，值
         mv.addObject("msg","欢迎使用springmvc做方法开发");
         mv.addObject("fun","执行的是doSome方法");
@@ -486,7 +490,7 @@ some.do--DispatcherServlet（中央调度器）--MyController类（它可以有�
 
 还可以有很多后台处理器(xxxController)
 
-注意：这些都是**在springmvc容器对象中进行处理的。** 和servlet先比多了个中央调度器。
+注意：这些都是**在springmvc容器对象中进行处理的。** 和servlet比多了个中央调度器。
 
 中央调度器能增加一些额外的功能，以后会说。
 
@@ -588,7 +592,9 @@ mv.setViewName("show");
 
 <mark>**主讲注解@RequestMapping的用法**</mark>
 
-### 1、放在类上面（value属性）
+### @RequestMapping
+
+#### 1、放在类上面（value属性）
 
 它可以放在方法上，也可以放在类上面。
 
@@ -596,7 +602,7 @@ mv.setViewName("show");
 
 <mark>value:所有请求部分**公用前缀**，</mark>我们叫它**模块名称**。（比如”/test“)（以什么为公共开头的）（不加也可以，不强制要求）
 
-### 2、方法上：指定请求方法(method属性)
+#### 2、方法上：指定请求方法(method属性)
 
 现在我们都是通过get方式，通过页面点击超链接发送请求，springmvc可以控制你是用get方式，还是post方式
 
@@ -652,7 +658,7 @@ other.do点进去后找不到相应的other.jsp。检查后发现问题，你看
 
 那么，该如何**接收用户提交的参数**呢？
 
-### 3、接收请求参数request
+### 处理器方法的参数
 
 **<mark> 接收形参类型</mark>**
 
@@ -692,7 +698,7 @@ c重启猫，加参数，<mark>**在地址后加参数**</mark>`?name=zhangsan`
 
 这一大类展开讨论：（先将最常用的两种方式）
 
-#### 逐个接收
+#### 1、逐个接收
 
 要求：<mark>**处理器（控制器）方法的形参名和请求中参数名必-须一致。**</mark>
 
@@ -710,8 +716,6 @@ c重启猫，加参数，<mark>**在地址后加参数**</mark>`?name=zhangsan`
 ```
 
 **<mark>同名的请求参数，赋值给同名的形参</mark>**
-
-
 
 页面index.jsp修改：（提交为表格）
 
@@ -775,7 +779,7 @@ spring会做一个记录，**警告**，放在自己的**日志**里。
 
 过滤器可以自定义，也可以使用框架中提供的过滤器：`CharacterEncodingFilter`
 
-#### 过滤器解决乱码问题
+##### 过滤器解决乱码问题
 
 过滤器位于spring-web这个依赖：
 
@@ -783,4 +787,306 @@ spring会做一个记录，**警告**，放在自己的**日志**里。
 
 项目中有，所以我们可以直接用。
 
-打开web.xml文件
+打开web.xml文件，
+
+这个过滤器里有三个属性需要赋值，encoding编码，两个布尔值设为真。
+
+`init-param`标签是用来初始化属性的。（我猜）
+
+```xml
+    <!--注册声明过滤器，解决post请求乱码的问题-->
+    <filter>
+        <!--名字随便起,习惯用类名，首字母小写-->
+        <filter-name>characterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <!--设置项目中使用的字符编码-->
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>utf-8</param-value>
+        </init-param>
+        <!--强制请求对象（HttpServletRequest)使用encoding编码的值-->
+        <init-param>
+            <param-name>forceRequestEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <!--强制应答对象（HttpServletResponse)使用encoding编码的值-->
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+
+    </filter>
+```
+
+定义好之后还需在外面加一个mapping映射指向。
+
+```xml
+    <filter-mapping>
+        <filter-name>characterEncodingFilter</filter-name>
+        <!--/*：表示强制所有的请求先通过过滤器处理-->
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+```
+
+现在再测试，就可解决编码问题了~
+
+##### @RequestPara注解
+
+现在有一个新问题，我们不能保证形参名和参数名总是一样的。
+
+现在我们示例假设，它们就是不一样的！那么此时我们可以借助一个注解来解决这个问题。
+
+它有属性：
+
+1. value：请求中参数的名称
+   
+   位置：在处理器方法的形参定义的前面
+
+```java
+ @RequestMapping(value = "/receiveproperty.do")
+    public ModelAndView doSome(@RequestParam(value = "rname") String name,
+                               @RequestParam("rage") int age){{
+```
+
+value可以省，只写里面的。表示请求中rname的参数赋给形参
+
+2. required 是一个布尔类型boolean，默认是true
+   
+   true:表示请求中必须包含此参数。为假的时候，请求参数可以有也可以没有。
+
+**注意：这个注解在逐个接收参数才有效。**
+
+#### 2、对象接收参数（常用）
+
+还有一种方式
+
+用一个java对象一次接收多个参数。
+
+定义一个普通类，没有特殊要求，有set,get方法，有构造参数就行了。
+
+现在我们建一个包叫vo，其类是用于保存参数值的。
+
+```java
+//保存请求参数值的一个普通类
+public class Student {
+    //属性名和请求参数名摇一摇
+    private String name;
+    private Integer age;
+
+    public Student(){
+        System.out.println("==Student的无参数构造方法==");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        System.out.println("setName"+name);
+        this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        System.out.println("setAge:"+age);
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+}
+```
+
+Controller控制器类中添加一个新的方法：
+
+```java
+    @RequestMapping(value = "/receiveobject.do")
+    public ModelAndView receiveParam(Student myStudent){
+        System.out.println("receiveRara,name = "+myStudent.getName()+"age:"+myStudent.getAge());
+
+        ModelAndView mv = new ModelAndView();
+
+        mv.addObject("myname",myStudent.getName());
+        mv.addObject("myage",myStudent.getAge());
+        /*对象也可以放到模型之中！*/
+        mv.addObject("mystudent",myStudent);
+        mv.setViewName("show");
+        return mv;
+    }
+```
+
+测试一下，结果返回成功。
+
+![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-13-15-08-image.png)
+
+![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-13-15-46-image.png)
+
+为了观看结果更加清晰，我们在创建普通对象类时为它的set方法调用时增加了一个输出语句，(并重写了toString方法，调用了它的无参构造）那么当它调用set方法时就能更好看见了效了。一切都是为了更好的体现效果~
+
+**<mark>用对象接收参数是我们在实际应用中最多的。</mark>** 
+
+我们可以在方法内部直接去用，还可以把它传给service和dao。而且它是形参，所以可以有多个，如School school等等。因为是按照同名原则查找的，互相并不干扰，也不会有顺序问题。
+
+温习：这个示例中的控制器方法中（数据+视图show）就是我们处理的返回结果（模拟）
+
+### 处理器方法的返回值类型
+
+处理器方法的返回值表示请求的处理结果。
+
+有四大类返回类型：
+
+#### 返回ModelAndView
+
+1. 有Model数据最终是放到了request作用域里；
+
+2. 有View视图，框架**对视图执行forward转发操作**。
+
+数据+视图
+
+```java
+    public ModelAndView doSome(){
+        ModelAndView mv = new ModelAndView();
+        //添加数据，框架在请求的最后把数据放到request作用域
+        //相当于request.setAttribute("msg,"欢迎使用..."）
+        //参数名，值
+        mv.addObject("msg","欢迎使用springmvc做方法开发");
+        mv.addObject("fun","执行的是doSome方法");
+        //指定视图,指定视图的完整路径
+        //框架对视图执行的是forward转发操作
+        //即request.getRequestDispather("/show.jsp").forward(...)
+        mv.setViewName("/show.jsp");
+        //你只用加进去，框架会帮你做的，不像以前一样麻烦
+   
+        //返回mv
+        return mv;
+    }
+```
+
+若你只需其中的某一个，它就有些大材小用了。我们会讲后面这些。
+
+#### 返回String
+
+**<mark>代表视图View</mark>** 部分。处理器方法返回的字符串可以**指定视图名称（或视图路径）**。
+
+示例：老调重弹：
+
+复制，新建项目，删除target文件夹，修改pom.xml中的项目名称为新建项目名称。IDE导入新项目。（注意：“导入”并不等于猫的“部署”，所以这是两个步骤）
+
+1. **指定视图名称方式**
+   
+   ```java
+       /*
+       * 处理器方法返回String
+       * --表示逻辑视图名称，需要配置视图解析器（它存在，在springmvc.xml文件里，之前我们配过）
+       * */
+       @RequestMapping(value = "/returnString-view.do")
+       public String doReturnView(String name, int age){
+           System.out.println("doReturnView,name="+name+"age="+age);
+           //show:逻辑视图名称，项目中配置了视图解析器
+           //框架对视图执行的是forward转发操作
+           return "show";
+       }
+   ```
+
+如果我想既能返回String，又能够存储数据，我们可以这么做：
+
+```java
+ public String doReturnView(HttpServletRequest request, String name, int age){
+        System.out.println("doReturnView,name="+name+"age="+age);
+        //可以自己手工添加数据到request作用域
+        request.setAttribute("myname",name);
+        request.setAttribute("myage",age);
+
+        //show:逻辑视图名称，项目中配置了视图解析器
+        //框架对视图执行的是forward转发操作
+        return "show";
+    }
+```
+
+2. **表示完整视图路径**
+   
+   此时不能配置视图解析器，否则它会报错，**会重复操作**。
+   
+   ```java
+       //处理器方法返回String，表示完整视图路径，此时不能配置视图解析器
+       @RequestMapping(value = "/returnString-view.do")
+       public String doReturnView2(HttpServletRequest request, String name, int age){
+           System.out.println("==doReturnView2,name="+name+"age="+age);
+           //可以自己手工添加数据到request作用域
+           request.setAttribute("myname",name);
+           request.setAttribute("myage",age);
+   
+           //show是一个逻辑名称，我们现在是要【完整视图路径】
+           //那项目中不能配置视图解析器
+           //框架对视图执行forward转发操作
+           return "/WEB-INF/view/show.jsp";
+       }
+   ```
+
+#### 返回void(了解)响应ajax
+
+了解即可，我们很少用。
+
+它既不能表示数据，也不能表示视图。
+
+在处理ajax的时候（它把请求是发给servelt的），可以使用void返回值。
+
+完全可以通过**应答对**象返回输出数据的。public void doGet(HttpServeltRequest request,HttpServeltResponse **reponse**)相应ajax请求。
+
+**ajax请求服务器端返回的就是数据，与视图无关。**
+
+ajax常用jQuery库文件(js)创建(jquery-3.4.1.js)，处理数据用到是json格式，需要用到包。那么我们就在pom.xml中加入依赖：(记得刷新一下Maven让他在有网环境下下载引入包)
+
+```xml
+    <!--Jackson依赖-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+```
+
+1. jsp文件引入js库`<script type="text/javascript" src="js/jquery-3.4.1.js</script>"`
+
+2. 接着在该jsp文件中做ajax了，简单点做一个按钮
+   
+   `<button id="btn">发起ajax请求</button>`
+
+3. jsp文件中绑定实践：按钮单继。$("button")标签选择器
+   
+   ```jsx
+   <script type="text/javascript>
+       $(function(){
+           $("button").click(function(){
+               alert("button click：按钮被单击了");
+   })
+   }) 
+   ```
+
+#### （P24,ajax先跳过，没学）
+
+#### 返回对象Object
+
+代表广，任何的返回值皆可以是对象。
+
+**返回对象是数据**，代表json数据，**不是作为逻辑视图出现的，**
+
+**而是直接作为页面显示的数据出现**。主要是响应ajax请求。
+
+对象有属性，属性就是数据，所以返回Object表示数据，和视图物馆。
+
+现在做ajax，主要使用json的数据格式。
+
+实现步骤：
+
+1. 加入处理json的工具库的依赖。springmvc默认使用的jackson。
+
+。。。好像跳不过卧槽啊。。。回头补一下先。
