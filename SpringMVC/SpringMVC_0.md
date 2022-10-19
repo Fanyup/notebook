@@ -87,22 +87,31 @@ index.jsp/main.jsp/...
 #### 步骤（大纲）
 
 1. 新建web maven工程  
+
 2. **加入依赖**
     spring-webmvc依赖，间接把spring的依赖都加入到项目  
     jsp，servlet依赖  
+
 3. **重点：在web.xml中注册springmvc框架的核心对象**<mark>DispatcherServlet</mark>  
     它叫**中央调度器**，是一个servlet，它的父类是继承HttpServlet  
     它也叫**前端控制器**（front controller)  
     负责接收用户提交的请求，调用其他的控制器对象，并把请求的处理结果显示给用户。  
+
 4. 创建一个**发起请求的页面** index.jsp  
+
 5. **创建控制器类**  
+   
    1. 在类的方法上加入 **@Controller注解，用它来创建对象**  
       并放到springmvc容器中
       
       它叫**后端控制器**
+   
    2. 在类中**方法上加入@RequestMapping**注解  
+
 6. 创建一个作为结果的jsp，显示请求的处理结果  
+
 7. 创建springmvc配置文件（和spring的配置文件一样）  
+   
    1. 声明**注解扫描器**，指定注解所在的包名  
    2. 声明视图解析器
 
@@ -192,7 +201,7 @@ build标签下引入插件：
 
 声明了，但它这个对象现在是不会创建的，因为我们现在没有访问这个servlet，它就不会创建。但我们**现在的期望是：在猫启动时就把这个servlet对象创建出来。** 因为它有一个作用：**用来创建SpringMVC容器对象的！** 会读取springmvc的配置文件，把这个配置文件的对象都创建好，当用户发起请求时，就可以直接使用对象了~
 
-servlet的初始化会执行init()方法。
+servlet的初始化会执行()方法。
 
 DispatcherServlet在init()中相当于：
 
@@ -278,8 +287,6 @@ springmvc创建容器时，读取的配置文件默认时/WEB-INF/`<servlet-name
     </servlet-mapping>et-mapping>
 ```
 
-
-
 上面都是固定的，不用背，会用就行了！
 
 #### 3.请求页面
@@ -287,7 +294,6 @@ springmvc创建容器时，读取的配置文件默认时/WEB-INF/`<servlet-name
 删除默认的。在webapp根目录下新建一个index.jsp
 
 ```jsx
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -398,7 +404,6 @@ public class MyController {
 在webapp根目录文件夹下创建show.jsp返回页面
 
 ```jsx
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -441,19 +446,21 @@ public class MyController {
 
 请求是如何处理的？
 
-### springmvc请求处理流程
+### 实操详解
 
-1. 用户发起请求some.do--给到tomcat
+#### springmvc请求处理流程
 
-2. 猫读取的是web.xml文件（webapp根目录下的，WEB-INF文件夹下的web.xml）
+1. 用户发起请求some.do--**给到tomcat**
+
+2. 猫读取的是**web.xml文件**（webapp根目录下的，WEB-INF文件夹下的web.xml）
    
-   根据`<url-pattern>`能知道*.do请求给中央调度器myweb的（mapping映射）
+   根据`<url-pattern>`能知道*.do请求**给中央调度器myweb**的（mapping映射）
    
    myweb对应中央调度器class是给DispatcherServlet给它的。
 
-3. 请求到达中央调度器，器它会根据【自定义配置文件位置】读取（resouces文件夹下的）springmvc配置文件。
+3. 请求到达中央调度器，器它会根据【自定义配置文件位置】读取（resouces文件夹下的）**springmvc配置文件**。
 
-4. 通过配置文件能知道所对应的组件扫描器，找到对应MyController创建对象。（后台控制器）(java蓝包中)
+4. 通过配置文件能知道所对应的**组件扫描器**，找到对应**MyController**创建对象。（后台控制器）(java蓝包中)
 
 5. 找到后台控制器后，@RequestMapping中传value的接收值就是"/some.do"）
    
@@ -467,4 +474,313 @@ public class MyController {
 
 上面过程简化方式：
 
-some.do--DispatcherServlet--MyController类
+some.do--DispatcherServlet（中央调度器）--MyController类（它可以有很多个）
+
+中央调度器：
+
+1. 负责创建springmvc容器对象，读取xml配置文件创建文件中的Controller（后台处理器）对象。
+
+2. 负责接收用户的请求，分派给自定义的Controller（后台处理器）对象。
+
+我可以有多个请求some.do，other.do，它们都给中央调度器，再转发给MyController（它有一个方法处理/some.do的），再添一个后台处理器OtherController（它的方法处理/other.do）
+
+还可以有很多后台处理器(xxxController)
+
+注意：这些都是**在springmvc容器对象中进行处理的。** 和servlet先比多了个中央调度器。
+
+中央调度器能增加一些额外的功能，以后会说。
+
+#### springmvc执行过程分析
+
+源代码分析：
+
+1. 猫启动，创建容器的过程
+   
+   web.xml文件有一个load-on-startup
+   
+   在猫启动时，会创建中央调度器的实例对象。
+   
+   该器的父类是继承HttpServlet类，是一个servlet，在被创建时会执行init()方法。
+   
+   在该方法中会执行：（这一步被封装隐藏了！）
+   
+   ```java
+   {
+   //创建容器，读取配置文件
+       webApplicationContext ctx = new ClassPathXmlApplicationContext("springmvc.xml");
+   //把容器对象放入到ServletContext（全局作用域）中
+       getServletContext().setAttribute(key, ctx);
+   //接下来就可以用容器对象了
+   }
+   ```
+   
+   - 读springmvc.xml配置文件，会执行组件扫描器，就能创建MyController后置处理器类对象了。**这个对象放到springmvc容器中**，容器是map，类似map.put("MyController",MyController对象)
+   
+   debug模式，查看源代码， **<mark>快捷键Ctrl+Fn+F12</mark>** 找方法，打断点。F8单步执行
+
+2. 请求的处理过程
+   
+   1. 执行servlet的service()方法
+      
+      ![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-18-14-16-26-image.png)
+
+```java
+protected void service(HttpServletRequest request, HttpServletResponse response)
+```
+
+Fn+F8执行断点下一步
+
+doService方法--**doDispatcher方法：调用MyController的doSome方法。（它是中央调度器的类的方法）**
+
+#### 配置视图解析器
+
+##### 引入
+
+如果我们单点show.jsp是没有数据的，因为它没有经过MyController处理的。这是一个bug，如何让用户不能直接方法show.jsp而是按照我们规定的顺序点击访问呢？
+
+把show.jsp放到**WEB-INF文件夹里面，因为在它里面是不对用户开放的。** 资源受保护，不能直接访问。
+
+创建一个子目录view，把视图放里面。
+
+那么后置处理器中相应路径也得变。
+
+```java
+mv.setViewName("/WEB-INF/view/show.jsp");
+```
+
+以指定扩展名时有很多重复编写操作（如路径名，.jsp后缀等），可以框架帮我们处理——视图解析器。
+
+##### 视图解析器
+
+在**springmvc.xml文件中**引入视图解析器。框架中的类，类名InternalResourceViewResolver(IRR快速打出)
+
+里面的属性也是封装好的！**prefix前缀**。路径值
+
+第一个斜杠/:web应用的根。后一个：代表它是一个路径。
+
+**suffix后缀**
+
+```xml
+    <!--声明调用springmvc框架中的视图解析器，帮助开发人员设置视图文件的路径-->
+    <!--它是框架中的类，不需要声明，不需要id，-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!--需要两个属性-->
+        <!--前缀：视图文件的路径-->
+        <property name="prefix" value="/WEB-INF/view/"/>
+        <!--后缀：视图文件的扩展名-->
+        <property name="suffix" value=".jsp"/>
+    </bean>
+```
+
+j简化了步骤（MyController控制器类中）
+
+```java
+//mv.setViewName("/WEB-INF/view/show.jsp");
+
+//当配置了视图解析器后，可以使用文件名（逻辑名称）指定视图
+mv.setViewName("show");
+//框架会根据视图解析器的前缀+逻辑名称+后缀组成完成路径，这就是字符连接操作。
+```
+
+补充一点:web.xml配置自定义springmvc.xml文件路径时它的名字也是自定义的。（**就是自己建的一个根resources包下的xml文件**）
+
+## 3、SpringMVC注解式开发
+
+<mark>**主讲注解@RequestMapping的用法**</mark>
+
+### 1、放在类上面（value属性）
+
+它可以放在方法上，也可以放在类上面。
+
+复制并创建一份新的项目，记得要改一下pom.xml里的项目名。导入这个新的模块Model（右上角设置，也可以File-->Project Structure找到）
+
+<mark>value:所有请求部分**公用前缀**，</mark>我们叫它**模块名称**。（比如”/test“)（以什么为公共开头的）（不加也可以，不强制要求）
+
+### 2、方法上：指定请求方法(method属性)
+
+现在我们都是通过get方式，通过页面点击超链接发送请求，springmvc可以控制你是用get方式，还是post方式
+
+**属性method，表示请求的方式**
+
+**<mark>它的值式RequestMethod类的枚举值</mark>**
+
+例如表示get方式：
+
+    RequestMethod.GET
+
+表示post方式：
+
+    RequestMethod.POST
+
+这两个最常用
+
+它的使用：
+
+现在指定some.do使用get请求方式
+
+```java
+ @RequestMapping(value = "/some.do",method = RequestMethod.GET)
+```
+
+指定other.do式post请求方式
+
+```java
+@RequestMapping(value = "/other.do",method = RequestMethod.POST)
+```
+
+post用表单。index.jsp修改：
+
+```jsx
+<body>
+    <p>第一个springmvc项目</p>
+    <p><a href="some.do">发起some.do的get请求</a></p><br/>
+
+//【下面的代码你发现潜在报错问题了吗？】
+    <form action="/other.do" method="post">
+        <input type="submit" value="post请求other.do">
+    </form>
+</body>
+```
+
+**<mark>不指定请求方式，没有限制，即不强制要求，通用</mark>**
+
+这里出现了一个问题。
+
+#### 运行时爆红问题
+
+other.do点进去后找不到相应的other.jsp。检查后发现问题，你看我上面写的框中some.do用的地址直接而没有斜杠，所以能找到。这里我们先前已经对公共前缀进行了封装。那么下面那个我一葫芦画瓢依照视频的加了斜杠（不同情况，原视频是有前文件user/的），这里的/other.do就将根路径地址直接编程localhost:8080/other.do了！当然无法找到，去掉后重启猫，可以正常运行。
+
+那么，该如何**接收用户提交的参数**呢？
+
+### 3、接收请求参数request
+
+**<mark> 接收形参类型</mark>**
+
+<mark>**一、常用到的三类形参类型：**</mark>
+
+- HttpServletRequest代表请求
+
+- HttpServletResponse代表应答
+
+- HttpSession代表会话
+
+它们放在后台处理器类的方法的形参位置，用来接收请求中的参数。
+
+用法就是把它们放到形参框中就可以了，springmvc会给它们自动赋值。+形参名
+
+示例：用HttpServeltRequest类型获取请求参数
+
+request对象的getParameter方法
+
+parameter"参数"
+
+```java
+ public ModelAndView doSome(HttpServletRequest request){
+        ModelAndView mv = new ModelAndView();
+        mv.addObject("msg","欢迎使用springmvc做方法开发"+request.getParameter("name"));
+        mv.addObject("fun","执行的是doSome方法");
+ //不完整代码
+```
+
+c重启猫，加参数，<mark>**在地址后加参数**</mark>`?name=zhangsan`
+
+能收到值，**说明形参request对象已经实例化**，可以直接调用它的方法了。
+
+**<mark>二、请求中所携带的请求参数</mark>**
+
+即用户真正所**提交的数据**（姓名啊一些）
+
+这一大类展开讨论：（先将最常用的两种方式）
+
+#### 逐个接收
+
+要求：<mark>**处理器（控制器）方法的形参名和请求中参数名必-须一致。**</mark>
+
+```java
+@RequestMapping(value = "/receiveproperty.do")
+    public ModelAndView doSome(String name, int age){
+
+        ModelAndView mv = new ModelAndView();
+
+        mv.addObject("myname",name);
+        mv.addObject("myage",age);
+        mv.setViewName("show");
+        return mv;
+    }
+```
+
+**<mark>同名的请求参数，赋值给同名的形参</mark>**
+
+
+
+页面index.jsp修改：（提交为表格）
+
+```jsx
+   <form action="receiveproperty.do" method="post">
+        姓名:<input type="text" name="name"><br/>
+        年龄:<input type="text" name="age"><br>
+        <input type="submit" value="提交参数">
+    </form>
+```
+
+这里我们示例的请求参数名为name和age
+
+**记得复制新项目后，要再发布一下项目:猫Edit..Deployment(部署)**
+
+一定一定一定要看一下你在猫上新部署的应用的地址！我趣尼玛啥了，之前怪不得为什么一直读取不到，原来是地址还是用了之前的地址！服了。
+
+![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-09-03-48-image.png)
+
+框架接收请求参数：
+
+1. 使用request对象接收请求参数
+   
+   String strName = request》getParameter("name");
+   
+   String strAge = request.getParameter("age");
+
+2. springmvc框架通过中央调度器调用MyController的doSome()方法。调用方法时，按名称对应，把接收的参数赋值给形参。
+   
+   doSome(strName, Integer.valueOf(strAge))
+   
+   框架会提供类型转换的功能，把String转为int, long, float, double等类型。它帮我们做了，我们就可以在方法中直接使用name, age了。
+
+**400状态码时客户端错误，表示提交请求参数过程中发生了问题。**（提交数据出错了）
+
+其中一个报错的情况：这里我设置的传入参数类型是int，这时我在输入年龄栏什么也不填写，这是应该传入的是null空值（int自动封装成Integer，然后再转成Int,因为我们最终要的int），但这时无法转换成数字，故报错400。
+
+spring会做一个记录，**警告**，放在自己的**日志**里。
+
+要解决不能传入null的问题，只需要将参数类型改成包装类Integer就可以了。（即最终我们要的是Integer)
+
+嫌太麻烦怎么办？把所有值都设置成String类型！，但其实我们在操作数据时还得进行Integer,ValueOf()的操作...
+
+就是说你参数不合法，doSome根本就不会执行了~也不用再进行年龄类型转换什么的了。
+
+最后重申一下：**形参名字对应，同位置无关。**
+
+现在又出现一个新问题：post方式输入中文会返回乱码，get方式则没有这个问题。如何解决？
+
+以前servlet方法时设置request对象方法：
+
+```java
+    public void doGet(HttpServletRequest request){
+        request.setCharacterEncoding("utf-8");
+    }
+```
+
+一个不方法：它要在每个方法最前面都加这个方法。非常不方便。
+
+我们在项目开发中，可以将它**放到过滤器中**，**<mark>在过滤器中设置字符编码</mark>**。处理乱码问题。
+
+过滤器可以自定义，也可以使用框架中提供的过滤器：`CharacterEncodingFilter`
+
+#### 过滤器解决乱码问题
+
+过滤器位于spring-web这个依赖：
+
+![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-09-41-17-image.png)
+
+项目中有，所以我们可以直接用。
+
+打开web.xml文件
