@@ -964,7 +964,7 @@ Controller控制器类中添加一个新的方法：
         //即request.getRequestDispather("/show.jsp").forward(...)
         mv.setViewName("/show.jsp");
         //你只用加进去，框架会帮你做的，不像以前一样麻烦
-   
+
         //返回mv
         return mv;
     }
