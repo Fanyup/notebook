@@ -372,8 +372,8 @@ Spring框架中一般<mark>**基于AspectJ**</mark>实现针对AOP相关的操�
 3. 在项目的工程里面引入AOP相关依赖。
    
    之前已经引入了：
-   
-   ![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-16-13-12-41-image.png)
+
+![ApplicationFrameHost_iaFf4EUPZC.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_iaFf4EUPZC.png)
 
 现在我们还要在之前下好的Spring框架：
 
@@ -383,7 +383,9 @@ Spring框架中一般<mark>**基于AspectJ**</mark>实现针对AOP相关的操�
 
 我们之前提到AspectJ本身并不是Spring中一部分，所以还需另外引入它的依赖。
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-16-15-01-43-image.png)
+
+
+![ApplicationFrameHost_F4T2TvQT5H.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_F4T2TvQT5H.png)
 
 接下来配置中需要用到一个东西：切入点的表达式
 
@@ -441,7 +443,7 @@ Spring框架中一般<mark>**基于AspectJ**</mark>实现针对AOP相关的操�
 
 我们需要用到相关的名称空间：context。添加一下
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-16-15-43-30-image.png)
+![ApplicationFrameHost_kPWL25TiNR.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_kPWL25TiNR.png)
 
 **除此之外，为了我们能开启生成代理对象，我们还要加个名称空间：叫aop**
 

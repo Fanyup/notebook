@@ -96,7 +96,7 @@
     
     关联的过程当中将webapp部署到Tomcat服务器当中
     
-    ![](C:\Users\up\AppData\Roaming\marktext\images\2022-09-29-15-57-54-image.png)
+    ![ApplicationFrameHost_QiVTrOPnoK.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_QiVTrOPnoK.png)
     
     左上角➕点击`Tomcat Server`->`local`
     
@@ -104,17 +104,19 @@
     
     点击这个来部署webapp
     
-    ![](C:\Users\up\AppData\Roaming\marktext\images\2022-09-29-16-05-46-image.png)
-    
+    ![ApplicationFrameHost_845Greda8g.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_845Greda8g.png)
+
     应用的上下文（根），这里改一下
     
-    ![](C:\Users\up\AppData\Roaming\marktext\images\2022-09-29-16-07-37-image.png)
+    
+    
+    ![ApplicationFrameHost_PZHDK2VPQf.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_PZHDK2VPQf.png)
 
     部署完成。
 
 11. 启动Tomcat服务器
     
-    ![](C:\Users\up\AppData\Roaming\marktext\images\2022-09-29-16-09-22-image.png)
+    ![ApplicationFrameHost_dSo8vkNrYE.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_dSo8vkNrYE.png)
     
     上方绿色小瓢虫，以debug的模式启动服务器
     

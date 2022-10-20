@@ -77,7 +77,7 @@
 
 3. 导入Spring5相关jar包(依赖)
    
-   ![](C:\Users\up\AppData\Roaming\marktext\images\2022-09-29-18-49-13-image.png)
+   ![ApplicationFrameHost_66LFxOTNA9.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_66LFxOTNA9.png)
 
     实现基本功能起码要core（4）
 
@@ -314,7 +314,7 @@ JUnit是单元测试框架
    
    点击类➕`Ctrl+H`打开类的结构
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-09-30-13-49-13-image.png)
+![ApplicationFrameHost_gkBPCUCpNh.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_gkBPCUCpNh.png)
 
 ClassPath（类路径）
 

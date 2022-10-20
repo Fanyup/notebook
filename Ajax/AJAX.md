@@ -80,9 +80,9 @@ public class OldRequestServlet extends HttpServlet {
 
 3. 部署一下。
 
-![MarkText_0JFZWg344G.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/MarkText_0JFZWg344G.png)
+![ApplicationFrameHost_QAwt9N4NRY.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_QAwt9N4NRY.png)
 
-~~（哎我去，这里出错，页面转乱码..）~~重新检查了一下代码，发现原来是后台方法多加了调用了父类的super.doGet方法..去掉后是成功运行的。新问题：js无响应..因为js没学so..
+~~（哎哎我去，这里出错，页面转乱码..）~~重新检查了一下代码，发现原来是后台方法多加了调用了父类的super.doGet方法..去掉后是成功运行的。新问题：js无响应..因为js没学so..
 
 我们会发现上面三种操作会导致页面全部重新刷新一遍。有可能出现空白期：服务器处理中...——用户体验间断了。
 

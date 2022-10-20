@@ -97,7 +97,9 @@ prop.password=密码
 
 `xmlns:context="http://www.springframework.org/schema/context"`
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-14-16-25-26-image.png)
+
+
+![ApplicationFrameHost_qqHxou5V2E.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_qqHxou5V2E.png)
 
 在spring配置文件中
 
@@ -217,7 +219,9 @@ public class UserService {
 
 示例一（最常见方法）（先能看懂）
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-14-18-50-17-image.png)
+
+
+![ApplicationFrameHost_vU2jXvINf3.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_vU2jXvINf3.png)
 
 这里添加了属性`use-default-filters=false`
 

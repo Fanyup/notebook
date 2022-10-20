@@ -442,9 +442,11 @@ public class MyController {
 
 这里关掉了默认启动这一项。
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-18-12-55-17-image.png)
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-18-12-56-55-image.png)
+
+![ApplicationFrameHost_zDbb9OG4Gk.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_zDbb9OG4Gk.png)
+
+![ApplicationFrameHost_gTeJPniRup.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_gTeJPniRup.png)
 
 项目越小，做框架越麻烦。项目越大，重复性工作减少，越方便。
 
@@ -526,7 +528,9 @@ some.do--DispatcherServlet（中央调度器）--MyController类（它可以有�
    
    1. 执行servlet的service()方法
       
-      ![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-18-14-16-26-image.png)
+      
+
+![ApplicationFrameHost_jC0tOuTzfO.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_jC0tOuTzfO.png)
 
 ```java
 protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -733,7 +737,9 @@ c重启猫，加参数，<mark>**在地址后加参数**</mark>`?name=zhangsan`
 
 一定一定一定要看一下你在猫上新部署的应用的地址！我趣尼玛啥了，之前怪不得为什么一直读取不到，原来是地址还是用了之前的地址！服了。
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-09-03-48-image.png)
+
+
+![ApplicationFrameHost_wKkxDgxRHr.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_wKkxDgxRHr.png)
 
 框架接收请求参数：
 
@@ -783,7 +789,9 @@ spring会做一个记录，**警告**，放在自己的**日志**里。
 
 过滤器位于spring-web这个依赖：
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-09-41-17-image.png)
+![ApplicationFrameHost_A2hbbTqfhn.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_A2hbbTqfhn.png)
+
+
 
 项目中有，所以我们可以直接用。
 
@@ -925,9 +933,15 @@ Controller控制器类中添加一个新的方法：
 
 测试一下，结果返回成功。
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-13-15-08-image.png)
 
-![](C:\Users\up\AppData\Roaming\marktext\images\2022-10-19-13-15-46-image.png)
+
+
+
+![ApplicationFrameHost_Ift1DPcO35.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_Ift1DPcO35.png)
+
+![ApplicationFrameHost_2Fzph3ayX6.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_2Fzph3ayX6.png)
+
+
 
 为了观看结果更加清晰，我们在创建普通对象类时为它的set方法调用时增加了一个输出语句，(并重写了toString方法，调用了它的无参构造）那么当它调用set方法时就能更好看见了效了。一切都是为了更好的体现效果~
 
