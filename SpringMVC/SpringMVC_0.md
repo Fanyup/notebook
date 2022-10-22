@@ -442,8 +442,6 @@ public class MyController {
 
 这里关掉了默认启动这一项。
 
-
-
 ![ApplicationFrameHost_zDbb9OG4Gk.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_zDbb9OG4Gk.png)
 
 ![ApplicationFrameHost_gTeJPniRup.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_gTeJPniRup.png)
@@ -527,8 +525,6 @@ some.do--DispatcherServlet（中央调度器）--MyController类（它可以有�
 2. 请求的处理过程
    
    1. 执行servlet的service()方法
-      
-      
 
 ![ApplicationFrameHost_jC0tOuTzfO.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_jC0tOuTzfO.png)
 
@@ -737,8 +733,6 @@ c重启猫，加参数，<mark>**在地址后加参数**</mark>`?name=zhangsan`
 
 一定一定一定要看一下你在猫上新部署的应用的地址！我趣尼玛啥了，之前怪不得为什么一直读取不到，原来是地址还是用了之前的地址！服了。
 
-
-
 ![ApplicationFrameHost_wKkxDgxRHr.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_wKkxDgxRHr.png)
 
 框架接收请求参数：
@@ -790,8 +784,6 @@ spring会做一个记录，**警告**，放在自己的**日志**里。
 过滤器位于spring-web这个依赖：
 
 ![ApplicationFrameHost_A2hbbTqfhn.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_A2hbbTqfhn.png)
-
-
 
 项目中有，所以我们可以直接用。
 
@@ -933,15 +925,9 @@ Controller控制器类中添加一个新的方法：
 
 测试一下，结果返回成功。
 
-
-
-
-
 ![ApplicationFrameHost_Ift1DPcO35.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_Ift1DPcO35.png)
 
 ![ApplicationFrameHost_2Fzph3ayX6.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_2Fzph3ayX6.png)
-
-
 
 为了观看结果更加清晰，我们在创建普通对象类时为它的set方法调用时增加了一个输出语句，(并重写了toString方法，调用了它的无参构造）那么当它调用set方法时就能更好看见了效了。一切都是为了更好的体现效果~
 
@@ -1066,6 +1052,7 @@ ajax常用jQuery库文件(js)创建(jquery-3.4.1.js)，处理数据用到是json
       <artifactId>jackson-core</artifactId>
       <version>2.9.0</version>
     </dependency>
+    <!--用来处理json的-->
 ```
 
 1. jsp文件引入js库`<script type="text/javascript" src="js/jquery-3.4.1.js</script>"`
@@ -1085,7 +1072,7 @@ ajax常用jQuery库文件(js)创建(jquery-3.4.1.js)，处理数据用到是json
    }) 
    ```
 
-#### （P24,ajax先跳过，没学）
+#### （P24，25跳过）
 
 #### 返回对象Object
 
@@ -1093,14 +1080,160 @@ ajax常用jQuery库文件(js)创建(jquery-3.4.1.js)，处理数据用到是json
 
 **返回对象是数据**，代表json数据，**不是作为逻辑视图出现的，**
 
-**而是直接作为页面显示的数据出现**。主要是响应ajax请求。
+**而是直接作为页面显示的数据出现**。主要是响应ajax请求的。
 
-对象有属性，属性就是数据，所以返回Object表示数据，和视图物馆。
+对象有属性，属性就是数据，所以返回Object表示数据，和视图无关。
+
+可以使用对象表示的数据，响应ajax请求。
 
 现在做ajax，主要使用json的数据格式。
 
-实现步骤：
+**实现步骤**：
 
 1. 加入处理json的工具库的依赖。springmvc默认使用的jackson。
 
-。。。好像跳不过卧槽啊。。。回头补一下先。
+2. **把java对象转成json**，在springmvc配置文件中**加标签**`<mvc:annotation-driven>`它叫 **<mark>注解驱动</mark>**。
+
+3. 在处理器方法上**加@ResponseBody注解**，**做输出的**。
+
+
+
+`<mvc:annotation-driven>`注解驱动的功能是完成java对象的json,xml,text二进制等数据格式的转换。底层是HttpMessageConverter接口（消息转换器）。接口定义的java对象转为json，xml等数据格式的方法。它有很多的实现类，这些实现类完成了数据格式的转换。
+
+里面有两个抽象方法：canWrite（查看能转换成什么格式）和write（假设是json格式，利用jackson库实现转换）
+
+常用的两个实现类：
+
+- StringHttpMessageConverter
+  
+  处理字符串时用它
+
+- MappingJackson2HttpMessageConverter
+  
+  处理java对象转为json格式的
+
+这个标签在加入到springmvc配置文件后会自动创建这个接口的七个实现类对象。
+
+##### @ResponseBody注解
+
+放在处理器方法的上面。
+
+把处理器方法返回对象转为json后，通过HttpServletResponse输出数据，响应ajax请求。
+
+```java
+PrintWriter out  = response.getWriter();
+out.println(json);
+out.flush();//刷新缓存
+out.close();
+```
+
+##### 实现一下
+
+需求：处理器方法返回一个Student,通过框架转为json,响应ajax请求
+
+pom.xml中添加jaskson依赖
+
+```xml
+    <!--Jackson依赖-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databink</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+```
+
+springmvc.xml配置文件中添加注解驱动
+
+（记得打开视图解析器，前面任务示例中取消调了它）
+
+![idea64_7etpKijSGp.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_7etpKijSGp.png)
+
+注意我们在选择标签时出现了多个“重名”的！一定不能一股脑回车！/cache缓存不是我们要的，/schema **/mvc** 它是我们要用到的！
+
+![idea64_vFo8T2ypTW.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_vFo8T2ypTW.png)
+
+此时它会自动帮我们加好mvc这个名称空间（图里最下一行，不完整截图，下面还有）
+
+加之后，实现类中才有MappingJackson2HttpMessageConverter这个实现类。
+
+前端ajax请求：
+
+```javascript
+<script type="text/javascript">
+    $(function () {
+        $("button").click(function () {
+
+            $.ajax({
+                url:"returnStudentJson.do"
+                data:{
+                    name:"zhangsan",
+                    age:20
+                },
+                type:"post"
+                dataType:"json",
+                success:function (resp) {
+                    //resp从服务器端返回的是json格式的字符串
+                    //jquery会把字符除按转为json对象，赋给resp形参。
+                    alert(resp.name + "  " +resp.age);
+
+                }
+            })
+        })
+    })
+</script>
+    })
+</script>
+```
+
+```java
+ //注解没有先后关系
+    @ResponseBody
+    @RequestMapping(value = "/returnStudentJson.do")
+    public Student doStudentJsonObject(String name, int age){
+        //调用service，获取请求结果数据，Student对象表示结果数据。
+        Student student = new Student();
+        student.setName("里斯");
+        student.setAge(20);
+        return student;//会被框架转为json
+
+    }
+```
+
+返回对象框架的处理流程：
+
+1. 框架会把返回的Student类型，调用框架终端ArryList`<HttpMessageConverter>`中每个类的canWriter()方法，来检查哪个HttpMessageConverter接口的实现类能处理Student类型
+
+2. 框架会调用实现类的write()
+   
+   本例中是MappingJackson2HttpMessageConverter类的write()方法。
+   
+   把看里斯同学的的student对象转为json，调用Jackson的ObjectMapper实现转为json（这些都已封装，不用你管了）
+
+3. 框架会调用@ResponseBody把2的结果数据输出到浏览器，ajax请求处理完成。
+   
+   ContentType:application/json;charset=utf-8
+
+专注业务功能实现。
+
+这个示例中讲的是单一对象student，它最终转成json对象。但在我们项目开发中，大多情况下，可能需要返回多个对象，此时用到List集合。
+
+###### JsonArray
+
+`List<Student> list = new ArrayList<>;`
+
+最终会被转为json数组。能保证顺序。index.jsp
+
+里用jquery的循环函数
+
+```jq
+$.each(resp,function(i,n){
+    alert(n.name+" "+n.age)
+})
+```
+
+List集合用的比较多。

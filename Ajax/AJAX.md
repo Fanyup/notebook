@@ -299,8 +299,6 @@ alert(this)中的this其实就是发生事件的**事件源对象**（这里就�
 
 ![ApplicationFrameHost_u4GRG8wBqt.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_u4GRG8wBqt.png)
 
-
-
 状态值为4表示响应结束了，**响应结束之后一般会有一个HTTP的状态码**
 
 常见HTTP状态码：
@@ -349,8 +347,6 @@ if(this.status == 200){
 ```
 
 图层div的id名写错了，应该是“mydiv"，修改后，页面成功渲染显示html
-
-
 
 ![ApplicationFrameHost_GMSPpnR3V6.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_GMSPpnR3V6.png)
 
@@ -589,8 +585,6 @@ xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded")
 
 ![ApplicationFrameHost_MZF92mIeeR.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_MZF92mIeeR.png)
 
-
-
 注意：请求头得放在send之前，open之后！
 
 ### 总结一下
@@ -630,3 +624,65 @@ xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded")
 #### 后端准备
 
 在WEB-INF下建一个lib包，导入JDBC驱动jar包依赖放进去，我用到的是mysql8的8.0.27版本。黏贴后最好在上面框中**Build**，build ”依赖“一下。
+
+```java
+//验证用户名是否可用
+@WebServlet("/ajaxrequest4")
+public class AjaxRequest4Servlet extends HttpServlet {
+
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        //获取用户名
+        String uname = request.getParameter("uname");
+        //连接数据库，验证用户名是否存在
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        //打布尔标记（一种变成模型）
+        boolean flag = false;//默认用户名不存在
+        try {
+            //1.注册驱动
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            //2.获取连接
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb?characterEncoding=utf8&useUnicode=true&useSSL=false&autoReconnect=true");
+            //3.获取预编译的数据库操作对象
+            String sql = "select id, name from t_user where name = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, uname);
+            //执行SQL语句
+            rs = ps.executeQuery();
+            //处理结果集
+            if (rs.next()) {
+                //用户名已存在
+                flag = true;
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //响应结果到浏览器
+        response.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        if (flag) {
+            out.print("<font color='red'>用户名已存在<font>");
+        }else {
+            out.print("<font>用户名可用！</font>");
+        }
+    }
+}
+```
+
+不知道是不是没有连上数据库的原因，输入zhangsan没反应。
+
+### json数据交换
+
+### 引出案例
+
+想通过发起ajax请求返回学生数据表，古老办法（前后端粘连）
+
+```java
+
+```
