@@ -293,6 +293,8 @@ springmvc创建容器时，读取的配置文件默认是/WEB-INF/`<servlet-name
 
 上面都是固定的，不用背，会用就行了！
 
+用斜杠/方式有什么问题
+
 #### 3.请求页面
 
 删除默认的。在webapp根目录下新建一个index.jsp
@@ -1095,8 +1097,6 @@ ajax常用jQuery库文件(js)创建(jquery-3.4.1.js)，处理数据用到是json
 2. **把java对象转成json**，在springmvc配置文件中**加标签**`<mvc:annotation-driven>`它叫 **<mark>注解驱动</mark>**。
 
 3. 在处理器方法上**加@ResponseBody注解**，**做输出的**。
-
-
 
 `<mvc:annotation-driven>`注解驱动的功能是完成java对象的json,xml,text二进制等数据格式的转换。底层是HttpMessageConverter接口（消息转换器）。接口定义的java对象转为json，xml等数据格式的方法。它有很多的实现类，这些实现类完成了数据格式的转换。
 

@@ -97,8 +97,6 @@ prop.password=密码
 
 `xmlns:context="http://www.springframework.org/schema/context"`
 
-
-
 ![ApplicationFrameHost_qqHxou5V2E.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_qqHxou5V2E.png)
 
 在spring配置文件中
@@ -218,8 +216,6 @@ public class UserService {
 我们可以约定哪些扫描，哪些不扫（细化）
 
 示例一（最常见方法）（先能看懂）
-
-
 
 ![ApplicationFrameHost_vU2jXvINf3.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_vU2jXvINf3.png)
 
