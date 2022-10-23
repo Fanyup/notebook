@@ -148,4 +148,28 @@ getMapper能获取**dao接口对应的实现类对象**。
 
 ## 深入理解参数
 
+现在我们研究的问题是，**如何把java代码中填入的参数传到sql映射文件的mapper标签下的sql语句中**，mybatis可以怎样使用这些数据？（就是如何传参的问题）
+
+![idea64_aL4XN92JdF.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_aL4XN92JdF.png)
+
+### 属性parameterType
+
+写在mapper文件中的一个**属性**，表示dao接口中方法的参数的数据类型。
+
+示例实现一下：
+
+dao接口定义抽象方法：
+
+```java
+//接口，操作student表
+public interface StudentDao {
+    public Student selectStudentById(Integer id);
+}
+
+```
+
+现在我想告诉mybatis这个id是一个整型Integer类型的，这样它就知道更多信息了。于是可以**在select标签上**加上这个属性
+
+sql映射文件中：
+
 
