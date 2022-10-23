@@ -84,4 +84,68 @@ MyApp类中删除1-4，并修改：
 
 写到目前为止，你有没有发现StudentDao接口似乎没什么用，和它没关系。那为什么还有这个接口呢？
 
-以前我们传统dao方法应该是实现类实现接口方法，这样才是正常的。
+### 引入：传统dao与简化升级
+
+以前我们传统dao方法应该是实现类实现接口方法，这样才是正常的。但这样做规律：方法代码内部重复高。有规律可循。
+
+如何简化流程？
+
+### mybatis的动态代理
+
+mybatis根据dao的方法调用，执行获取sql语句的信息。
+
+mybatis根据你的dao接口，创建出一个dao接口的实现类，并创建这个类的对象，完成sqlSession调用方法，访问数据库。
+
+简而言之，**你的StudentDaoImpl实现类不用再创建了！mybatis根据dao接口在内部帮你把这个实现类实现出来~**
+
+并且完成dao实现类中这些方法的调用。
+
+**这是我们以后主要用到的方式。**
+
+那么该如何用动态代理这个机制呢？——使用`SqlSession.getMapper(dao接口)`这个方法
+
+#### getMapper方法
+
+getMapper能获取**dao接口对应的实现类对象**。
+
+测试类方法修改：
+
+```java
+ @Test
+    public void testSelectStudents(){
+        SqlSession sqlSession = MyBatisUtils.getSqlSession();
+        StudentDao dao = sqlSession.getMapper(StudentDao.class);
+        //调用dao的方法，来执行数据库的操作
+        List<Student> students = dao.selectStudents();
+        for (Student stu: students){
+            System.out.println("学生="+stu);
+        }
+```
+
+![idea64_M4jUkrWSIc.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_M4jUkrWSIc.png)
+
+这样相较于第一个入门案例更简化了。不仅用到了工具类封装创建对象方法，同时使用动态代理创建了dao接口的实现类，程序员只需要认真写dao接口和其相应的sql映射文件即可。和第一个案例的区别是，案例一中没有用到dao实现类，而这个案例中我们调用了该实现类的方法。
+
+其中**dao实现类的方法正是sql映射文件中那个对应sql语句的唯一id值。**
+
+查询：
+
+![idea64_AF1XhmjexA.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_AF1XhmjexA.png)
+
+![idea64_2us6xGe9rq.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_2us6xGe9rq.png)
+
+插入：
+
+（入门案例一）
+
+![idea64_eIUWgqnEJ8.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_eIUWgqnEJ8.png)
+
+（动态代理dao接口内部创建实现类）
+
+![chrome_hKfvWmt30j.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_hKfvWmt30j.png)
+
+因为有接口，所以它是我们之前讲过的**JDK动态代理**
+
+## 深入理解参数
+
+
