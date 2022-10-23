@@ -43,3 +43,45 @@
   **这样能保证它的使用是线程安全的！**
 
 至此我们发现很多工作是重复的，下面我们来写个工具类封装这些重复的工作吧！！
+
+### 写一个工具类封装它们
+
+```java
+public class MyBatisUtils {
+
+    //局部变量我们用不了，得把它声明在外面让他变成全局（成员）（类）变量。
+    private static SqlSessionFactory factory = null;
+    //静态块，在加载这个类时只执行一次
+    static {
+        String config="mybatis.xml";
+        try {
+            InputStream in = Resources.getResourceAsStream(config);
+            //创建SSF对象，使用SSFBuild
+            factory = new SqlSessionFactoryBuilder().build(in);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    //获取SqlSession的方法
+    public static SqlSession getSqlSession(){
+        SqlSession sqlSession = null;
+        if (factory != null) {
+            sqlSession = factory.openSession();//非自动提交事务，它得到的是一个对象
+        }
+        return sqlSession;
+    }
+}
+
+```
+
+MyApp类中删除1-4，并修改：
+
+```java
+//5.【重要】获取SqlSession对象，从SqlSessionFactory中获取SqlSession
+        SqlSession sqlSession = MyBatisUtils.getSqlSession();
+```
+
+写到目前为止，你有没有发现StudentDao接口似乎没什么用，和它没关系。那为什么还有这个接口呢？
+
+以前我们传统dao方法应该是实现类实现接口方法，这样才是正常的。
