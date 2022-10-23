@@ -100,7 +100,7 @@ tar.gz是在Linux上压缩文件的格式。
 
 我们只要做：**提供sql语句**~
 
-## 入门案例
+## 入门案例：select查询操作
 
 创建新空项目，创建新model，选择Maven（勾选骨架模板）（archetype-quickstart)
 
@@ -225,7 +225,7 @@ xml文件格式在mybatis参考文档里找[MyBatis中文网](https://mybatis.ne
    它是一个文件，限制和检查在当前文件中出现的标签，属性必须符合mybatis的要求  
    3.
    
-   - <u>mapper</u> 是当前文件的跟标签，必须的
+   - <u>mapper</u> 是当前文件的根标签，必须的
    
    - <u>namespace</u>:命名空间，唯一值，可以是自定义的字符串。  
      **<mark>但我们规定使用dao接口的全限定名称</mark>**。（就是那个包括包名的一长串）
@@ -261,7 +261,8 @@ xml文件格式在mybatis参考文档里找[MyBatis中文网](https://mybatis.ne
      <!DOCTYPE mapper
              PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
              "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-     <mapper namespace="https://i.imgur.com/t0SSkHw.png">
+     
+     <mapper namespace="com.bjpowernode.dao.StudentDao">
          <select id="selectStudents" resultType="com.bjpowernode.domain.Student">
              select id,name,email,age from student order by id
          </select>
@@ -337,16 +338,328 @@ url这里为了方便我直接拿过来了:`jdbc:mysql://localhost:3306/mydb?cha
 
 （实际上就是变相切换数据库了）
 
+**现在我们要做的是：修改填写sql mapper(也就是映射文件的位置)**
+
+```xml
+    <!--sql mapper(sql映射文件）的位置-->
+    <mappers>
+        <!--一个mapper标签指定一个文件的位置
+        从【类路径】开始的路径信息
+        就是代码编译(compile）后target/classes(类路径)
+
+        -->
+        <mapper resource="类路径/xxx.xml"/>
+    </mappers>
+```
+
+现在我们要找**从类路径开始**的路径信息：
+
+也就是**target/classes（类路径）/下**的**不带斜杠的相对路径**。
+
+
+
+
+
 ![chrome_oSbwpDLLZM.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_oSbwpDLLZM.png)
 
 （稍等一下，这上面1，2，3步骤不少使，不知道是不是maven版本的问题，我换成以下方式解决了👇）
 
 ![idea64_BeZTHHNYT4.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_BeZTHHNYT4.png)
 
-
-
 maven编译文件后会生成target目录
 
 mvn compile（编译）
 
-编译main/java/目录下的java 为class文件，通知把class拷贝到target目录下面
+编译main/java/目录下的java 为class文件，通知把class拷贝到target目录下面、
+
+##### 编译后没有xml的情况
+
+**得在pom.xml中添加resources标签，才能保证我们的sql映射文件拷贝到classes下面。**
+
+但现在通过上上图发现没有这个文件，是因为在默认情况下maven编译java目录下的这些文件是自动被忽略调的。解决这个问题需要加一个插件（plugin)（可加可不加，因为compile我们已经指定1.8了，resources插件得放到build里，它是指定文件用的。
+
+```xml
+  <build>
+    <--!下面我有问题，你发现了吗？-->
+    <resources>
+      <!--所在的目录-->
+      <directory>src/main/java</directory>
+      <includes>
+        <!--包括目录下的.properties,.xml文件都会扫描到-->
+        <include>**/*.properties</include>
+        <include>**/*.xml</include>
+      </includes>
+      <filtering>false</filtering>
+    </resources>
+    
+  </build>
+```
+
+上面这个是网课参考，我一直爆红，终于查出问题所在：因是一个一个打的，漏掉了resources下的resource标签！这里是我不懂得maven规则犯的错
+
+- build插件（**只需要一个**）
+  
+  - resources（**只需要一个**）
+    
+    - resource（可以有多个）
+
+修改后的：
+
+```xml
+
+  <build>
+
+      <resources>
+       <!-- <resource>
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>config/*.properties</include>
+            <include>*.xml</include>
+          </includes>
+        </resource>-->
+
+        <resource>
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.properties</include>
+            <include>**/*.xml</include>
+          </includes>
+          <filtering>false</filtering>
+        </resource>
+      </resources>
+
+
+  </build>
+```
+
+（注释掉的这段之后会用到👇）
+
+```xml
+  <build>
+    
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>config/*.properties</include>
+            <include>*.xml</include>
+          </includes>
+        </resource>
+      </resources>
+
+  </build>
+```
+
+再次编译：
+
+![idea64_i2XI1TRXKk.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_i2XI1TRXKk.png)
+
+现在就能获取到target/classes下的路径了，我们拷贝一下，将它粘贴在mapper。
+
+<mark>终于找到他了~</mark>：修改一下
+
+```xml
+  <!--sql mapper(sql映射文件）的位置-->
+    <mappers>
+        <!--一个mapper标签指定一个文件的位置
+        从【类路径】开始的路径信息
+        就是代码编译(compile）后target/classes(类路径)
+
+        -->
+        <mapper resource="com/bjpowernode/dao/StudenDao.xml"/>
+    </mappers>
+```
+
+**我们找它做什么？** 因为Student.xml(也就是sql映射文件)中有执行sql语句，而主配置文件的两个作用1.连接数据库，2.配置才能指向到sql映射文件；否则不就断连了嘛！**sql映射文件一般在同该dao接口一个目录夏的**
+
+这个mapper标签可以出现多次，可指向多个sql映射文件嘛。
+
+##### 特殊情况，做好一切后还是没有xml
+
+这有可能是maven自带的小Bug，这时可以执行maven的**clean，清掉编译文件，再用compile重写编译一下**。实在不行，则最上方Build->Rebuild Project强制重置一下该项目。还不行，手工CV复制黏贴吧！
+
+#### 7、创建mybatis类，访问数据库
+
+创建SqlSession对象执行sql语句
+
+```java
+public class MyApp {
+    public static void main(String[] args) throws IOException {
+        //访问mybatis读取student数据
+        //1.定义mybatis主配置文件名称
+        //从类路径的根开始
+        String config="mybatis.xml";
+        //2.读取这个config表示的文件
+        InputStream in = Resources.getResourceAsStream(config);
+        //3.创建SqlSessionFactoryBuilder对象
+        SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+        //4.创建SqlSessionFactory对象
+        SqlSessionFactory factory = builder.build(in);
+        //5.【重要】获取SqlSession对象，从SqlSessionFactory中获取SqlSession
+        SqlSession sqlSession = factory.openSession();
+        //6.【重要】指定要执行的sql语句的标识。
+        //sql映射文件中的namespace + "." + 标签的id值
+        String sqlId = "com.bjpowernode.dao.StudentDao" + "." + "selectStudents";
+        //7.通过sqlId,找到并执行sql语句
+        List<Student> studentList = sqlSession.selectList(sqlId);
+        //8.输出结果(这里用的是lambda表达式）
+        studentList.forEach(stu-> System.out.println(stu));
+        //9.关闭SqlSession对象
+        sqlSession.close();
+    }
+}
+```
+
+##### 需要注意的细节
+
+![idea64_QGFFVi3EOR.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_QGFFVi3EOR.png)
+
+![idea64_AAbgN7fbIU.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_AAbgN7fbIU.png)
+
+![idea64_m8sHTjFoSS.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_m8sHTjFoSS.png)
+
+
+
+##### 连接失败到问题解决
+
+普大喜奔，泪目，一共测试3回。第一次爆红失败时简直要心态崩了，毕竟一遍流程下来全照搬，每个步骤都不是理解的很透彻，但心态还是稳的：处理这个mybatis类，前面步骤好在还有笔记。下面来说以下三次主要错因在哪。
+
+- 一周目异常爆红第一句提示数据库连接失败，我查看mybatis.xml主配置文件后发现是**连接信息写错了**，密码前漏删了个$。修改后我重建了数据库中的student表
+
+- 显示连接上了，（没有异常就是正常，无为这点和Linux很像）但是异常提示找不到id这个，我看了下表，尼玛原来id多加了个s写成ids了，无奈谨慎又重建了个。
+
+- 这回输出了重写方法，期间我按弹幕的指示在sql语句中加了库名（即from mydb.student)，成功后除去库名发现执行也是一样成功的。
+
+![idea64_vhVve7TTaE.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_vhVve7TTaE.png)
+
+##### 回顾该示例关键细节
+
+
+
+![idea64_qcTN3UblIG.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_qcTN3UblIG.png)
+
+主配置文件（后面很多东西我们不需要的，这里主讲关键细节）
+
+![idea64_NBulvCokMH.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_NBulvCokMH.png)
+
+1. 我要首先要知道你连接哪个数据库，得读主配置文件。到哪去找他你？**得从类路径根开始**
+   
+   因为代码**经过编译之后是放在target目录下**
+   
+   我们得执行target目录下的类，即classes下的目录
+   
+   它下面才是我们执行时要用到的文件和各种资源。
+   
+   因为我们把它放到了resources目录（**我们将它设置成了资源文件夹**）下，所以它经过编译后直接在mybatis根目录下。
+
+![idea64_yZXqzdmHfG.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_yZXqzdmHfG.png)
+
+2. 通过Resources类的静态方法得到**输入流**
+   
+   第一步是找到它，第二步才是读取它。
+   
+   1. 读到内部自动创建Connection对象，这就算连接上了。
+   
+   2. 找到sql映射对象了，知道sql语句
+
+3. 4.我们把这个输入流最终给了build方法，目的是创建SqlSessionFactory对象，再调用它的openSession()方法**得到SqlSession对象，它很重要**。
+
+4. **通过这个对象，执行selectList()方法，表示执行数据查询得到多条记录。**
+   
+   它的结果是一个List集合
+
+5. 那么它怎么知道我们要执行哪个sql语句呢？
+   
+   我们得通过**标识**来”告诉“它。标识规定：
+   
+   返回类型是String字符串由：
+   
+   "namespace" + ”.“ + "具体sql语句的唯一id标识"组成
+   
+   它们之间用.号相连，注意**上面是结合成一整段字符串的**。
+
+6. 执行输出完后，最后关闭SqlSession对象。
+
+## 入门案例：insert插入操作
+
+当基本结构写完后，直接添加就方便多了。
+
+1. 接口里添加插入的抽象方法。
+   
+   ![chrome_sE9Sbtr7ys.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_sE9Sbtr7ys.png)
+
+2. StudentDao.xml
+   
+   insert标签加插入操作。
+   
+   注意我们传入的参数时对象，因此不能写死，要通过这个对象来查询数据。
+   
+   ![idea64_CvxNiTmJmf.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_CvxNiTmJmf.png)
+   
+   这里传入对象属性值有专门规定，我们先拿来用，以后会讲，格式是`#{属性名}`
+
+```xml
+    <insert id="insertStudent">
+        insert into student values (#{id},#{name},#{email},#{age})
+    </insert>
+```
+
+建议用单元测试测试方法，方便一点，不用重写了。
+
+### 测试一下
+
+帮刚刚写好的方法拷贝到测试类的测试方法中，这样就不用重写了。这里不再是setList()查询方法了，我们把它换成SqlSession对象的insert()方法。
+
+![idea64_6XwoqIgkyA.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_6XwoqIgkyA.png)
+
+执行成功，**但数据库还是没有添加数据！**
+
+为什么呢？**因为mybatis默认不是自动提交事务的**。
+
+需要我们在之后**手工去添加事务。**
+
+![idea64_1tL0fIVzEL.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_1tL0fIVzEL.png)
+
+再试试，现在表中数据就被成功添加了~
+
+![MySQLWorkbench_jC7AH9Fg43.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/MySQLWorkbench_jC7AH9Fg43.png)
+
+### 程序员实际要做的
+
+其实实际要我们手工做的很简单：
+
+1. 接口中添加抽象方法定义
+
+2. sql映射文件中指定sql语句
+
+3. 执行时在执行类中替换成新的标识id（三段＋）和方法（select呀，insert呀）
+
+现在又有个问题：
+
+我们执行只能看到单方法返回的结果，而不知道sql语句执行的详细信息，这时该怎么办呢？需要**开启日志**
+
+### 开启日志
+
+在主配置文件中加上一句话即可。
+
+它表示**打印日志到控制台**。
+
+(一般我们加在配置文件稍前面一点)
+
+```xml
+//注意是<configuration>下：
+
+    <!--settings:控制mybatis全局行为-->
+    <settings>
+        <!--设置mybatis输出日志-->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+```
+
+现在再看刚刚的**查询语句**结果：
+
+![idea64_cXV1hYHUTR.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_cXV1hYHUTR.png)
+
+再来看看这次的插入语句执行结果：
+
+![idea64_seTIRHQ25o.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_seTIRHQ25o.png)
