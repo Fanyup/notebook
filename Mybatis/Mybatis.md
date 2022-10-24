@@ -356,10 +356,6 @@ url这里为了方便我直接拿过来了:`jdbc:mysql://localhost:3306/mydb?cha
 
 也就是**target/classes（类路径）/下**的**不带斜杠的相对路径**。
 
-
-
-
-
 ![chrome_oSbwpDLLZM.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_oSbwpDLLZM.png)
 
 （稍等一下，这上面1，2，3步骤不少使，不知道是不是maven版本的问题，我换成以下方式解决了👇）
@@ -391,7 +387,7 @@ mvn compile（编译）
       </includes>
       <filtering>false</filtering>
     </resources>
-    
+
   </build>
 ```
 
@@ -406,7 +402,6 @@ mvn compile（编译）
 修改后的：
 
 ```xml
-
   <build>
 
       <resources>
@@ -436,7 +431,7 @@ mvn compile（编译）
 
 ```xml
   <build>
-    
+
       <resources>
         <resource>
           <directory>src/main/resources</directory>
@@ -518,8 +513,6 @@ public class MyApp {
 
 ![idea64_m8sHTjFoSS.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_m8sHTjFoSS.png)
 
-
-
 ##### 连接失败到问题解决
 
 普大喜奔，泪目，一共测试3回。第一次爆红失败时简直要心态崩了，毕竟一遍流程下来全照搬，每个步骤都不是理解的很透彻，但心态还是稳的：处理这个mybatis类，前面步骤好在还有笔记。下面来说以下三次主要错因在哪。
@@ -533,8 +526,6 @@ public class MyApp {
 ![idea64_vhVve7TTaE.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_vhVve7TTaE.png)
 
 ##### 回顾该示例关键细节
-
-
 
 ![idea64_qcTN3UblIG.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_qcTN3UblIG.png)
 

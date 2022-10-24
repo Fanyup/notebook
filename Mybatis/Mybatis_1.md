@@ -72,7 +72,6 @@ public class MyBatisUtils {
         return sqlSession;
     }
 }
-
 ```
 
 MyApp类中删除1-4，并修改：
@@ -165,11 +164,8 @@ dao接口定义抽象方法：
 public interface StudentDao {
     public Student selectStudentById(Integer id);
 }
-
 ```
 
 现在我想告诉mybatis这个id是一个整型Integer类型的，这样它就知道更多信息了。于是可以**在select标签上**加上这个属性
 
 sql映射文件中：
-
-
