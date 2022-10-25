@@ -134,7 +134,7 @@ base标签是html中自带的，他一般是带协议的绝对地址。你可以
 
 **注意：它们只针对当前页面有效。**
 
-### 加斜杠的访问地址:
+### 加斜杠的访问地址
 
 参考地址就变成了：【服务器ip到端口号】这部分+你访问地址
 
@@ -147,3 +147,90 @@ base标签是html中自带的，他一般是带协议的绝对地址。你可以
 这个表达式代表的是你项目的访问路径
 
 **不推荐**，每个链接都要加，不如前面一劳永逸！
+
+## SSM整合开发思路
+
+重新new一个模板Model,maven选择maven-archetype-webapp骨架。
+
+![chrome_3hEJcYnJRg.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_3hEJcYnJRg.png)
+
+用户发起请求--SpringMVC接收--Spring中的Service对象--Mybatis处理数据（dao层）--数据库
+
+SSM整合也叫做SSI
+
+IBatis也就是Mybatis的前身。
+
+**整合中有容器，有两个容器**：
+
+1. SpringMVC容器，控制Controller控制器对象的
+
+2. Spring容器，管理Service，Dao,工具类对象的
+
+我们要做的是把使用的对象交给合适的容器创建、管理。
+
+- 把Controller还有web开发的相关对象交给springmvc容器，把web用的对象写在springmvc配置文件中。
+
+- service,dao对象定义在spring的配置文件中，让spring管理这些对象。
+
+两个盒子（容器）是由关系的，**关系已经确定好了**，我们之前也讲过。
+
+**springmvc容器时spring容器的子容器**，类似java中的继承（但不等于）。**子可以访问父的内容**。
+
+也就是说**在子容器中的Controller（后端控制器）可以访问（使用）父容器中的Service对象。**
+
+### 实现步骤
+
+使用mydb库下的student表（其中定义主键id值自增）
+
+![MySQLWorkbench_O7GGBxUBko.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/MySQLWorkbench_O7GGBxUBko.png)
+
+1. 新建一个Maven的web项目
+
+2. 加入依赖
+   
+   - springmvc,spring,mybatis三个框架的依赖加入到pom.xml中
+   
+   - jackson依赖（转换json的）
+   
+   - mysql驱动（也就是依赖）
+   
+   - druid连接池
+   
+   - jsp,servlet依赖
+   
+   项目一大的话依赖就很多。
+
+3. **写web.xml**
+   
+   1. 注册前端（中央）控制器DispathcherServlet。，
+      
+      目的：
+      
+      - 创建springmvc容器对象，才能取创建Controller对象。
+      
+      - 它是Servlet，创建它才能接收用户的请求
+   
+   2- **注册spring的监听器:ContextLoaderListener**
+   
+      目的：
+   
+   - 创建spring的容器对象，它通过读取配置文件，才能创建service，dao等对象
+     
+     （这里是注解扫描器吗？没什么印象，稍后看一下）
+   3. 注册字符集过滤器，解决post请求乱码的问题。
+   
+   4. 创建包，Controller包，service，dao，实体类包名创建好
+   
+   5. 写springmvc,spring,mubatis的配置文件。
+      
+      1. springmvc配置文件
+      
+      2. spring配置文件
+      
+      3. mybatis主配置文件
+      
+      4. 数据库的属性配置文件（xxx.properties)
+   
+   6. 写代码，dao接口和mapper（sql映射）文件，service和实现类，controller，实体类（存放属性的）。
+   
+   7. 写jsp页面。
