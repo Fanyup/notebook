@@ -596,7 +596,7 @@ mv.setViewName("show");
 
 ### @RequestMapping
 
-#### 1、放在类上面（value属性）
+#### 1、放在类上面（value属性）（一般不这么加）
 
 它可以放在方法上，也可以放在类上面。
 
