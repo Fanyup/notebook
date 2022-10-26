@@ -1,5 +1,7 @@
 # 实现步骤
 
+## 1、大纲（基本思路）
+
 使用mydbl库下的student表（其中定义主键id值自增）
 
 ![MySQLWorkbenchO7GGBxUBkopng](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/MySQLWorkbench_O7GGBxUBko.png)
@@ -185,11 +187,13 @@ E:\BaiduNetdiskDownload\01-文档\SpringMVC课程文档
 
 ## 3、写web.xml文件
 
+
+
 这个文件在webapp项目下的WEB-INF下。为什么在它下面，因为它是对用户不公开的，外来用户无法访问，更安全。
 
 首先我们还是来改一下它模板给我们的版本（初始太低了）。它可以从我们之前学习springmvc创建的项目中直接拷贝它。
 
-### 1、注册中央调度器及相关
+### 1、注册中央调度器+指定配置文件路径+启动load1
 
 **注册（创建）中央调度器，指定springmvc配置文件自定义路径，服务器启动时创建中央调度器对象。**
 
@@ -224,15 +228,9 @@ CV大师放一下：
         <servlet-name>myweb</servlet-name>
         <url-pattern>*.do</url-pattern>
     </servlet-mapping>
-
-
 ```
 
-### 2、注册spring的监听器
-
-到这里大家还记得spring的**ioc面向切面编程**吗？
-
-### 创建springmvc的配置文件
+#### 1.1创建springmvc的配置文件
 
 它用来**声明Controller后端控制器和其他web相关的对象**。
 
@@ -240,8 +238,104 @@ CV大师放一下：
 
 我们首先在src的main目录下创建java目录（编译classes的地方），和resources目录
 
-![idea64_1n1B9Rvg0N.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_1n1B9Rvg0N.png)
+![idea641n1B9Rvg0Npng](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_1n1B9Rvg0N.png)
 
 可以在resources目录下创建一个子目录（如叫conf)，在它下面来创建我们的配置文件。原先我们给它去名叫springmvc.xml，**现在我们想给它改名了，它就叫conf/（目录下的）dispatcherServlet.xml**
 
 (**这是一个相对路径**，**不带斜杠的**，通过我们用的都是不带斜杠的；因为一旦加上斜杠，它就是从端口号下直接找了！)
+
+### 2、注册spring的监听器+指定配置文件路径
+
+到这里大家还记得spring的**ioc面向切面编程**吗？（面向切面，好像有一毛钱关系）
+
+我们要**指定自定义的spring配置文件的位置**。这里就和面向切面ioc有关系了！
+
+```xml
+  <!--注册spring的监听器+指定配置文件路径-->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:conf/applicationContext.xml</param-value>
+  </context-param>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+```
+
+我的理解是，有了监听器，你对springmvc容器才能连上spring容器，他俩之间才能进行交互，数据通信。
+
+这里我们给 **<mark>spring配置文件命名为：applicationContext.xml；</mark>**
+
+注意它和springmvc配置文件路径指向不同的区别是一个是一个是`<context-param>`标签，一个是`<init-param>`标签
+
+#### 2.1创建spring配置文件
+
+它用来**声明service，dao和工具类等对象**。
+
+这里我们说创建就是真的在resources/conf/目录下创建想要的.xml配置文件，**只不过它是穿插在编写web.xml文件的过程中。**
+
+![chromeKBimM3ArAgpng](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_KBimM3ArAg.png)
+
+### 3、注册字符集过滤器filter
+
+**防止post乱码问题**
+
+filter的name名字一般是类名就行了（首字母小写）
+
+再指定它用到的三个属性（你可以直接去CharacterEncodingFilter过滤类中找它）（快捷键Ctri+左单击）：encoding，和其他两个布尔类型的属性。
+
+![idea64_Ru3x6SqqHA.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_Ru3x6SqqHA.png)
+
+并value填写定义它的编码方式。布尔两个都设置为真，意思是说强制request请求和response应答都是用utf-8的编码。
+
+```xml
+  <!--注册字符集过滤器-->
+  <filter>
+    <filter-name>characterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+    <init-param>
+      <param-name>forceRequestEncoding</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>forceResponseEncoding</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </filter>
+```
+
+最后加上filter-mapping标签，**指定 /* 下都强制遍历一遍。**（大概是这个意思）
+
+```xml
+  <filter-mapping>
+    <filter-name>characterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+```
+
+注意细节：**这个映射实在filter标签外指定的**。
+
+## 4、创建包
+
+把整个结构中的包都创建好，目的是把程序中的类都安置好位置。
+
+domain（实体类的）
+
+![idea64_zHck3zwajV.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_zHck3zwajV.png)
+
+OK，这样我们就可以继续具体编写配置文件了。
+
+
+
+## 5、具体编写配置文件
+
+首先先写springmvc这个，内容少，简单一点
+
+### springmvc配置文件
+
+我们要用注解方式来写springmvc项目，那**注解的组件扫描器**必不可缺呀！
+
+所以我们第一步要先声明组件扫描器，指定扫描controller包下的（全类名）
