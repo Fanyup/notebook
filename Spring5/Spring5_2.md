@@ -140,7 +140,7 @@ prop.password=密码
    
    3. `@Controller`一般用在web层
    
-   4. `Repository`一般用在Dao层
+   4. `@Repository`一般用在Dao层
 
 但实际中可以互通使用，只是为了我们开发更加方便，建议而已。
 

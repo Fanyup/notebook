@@ -187,8 +187,6 @@ E:\BaiduNetdiskDownload\01-文档\SpringMVC课程文档
 
 ## 3、写web.xml文件
 
-
-
 这个文件在webapp项目下的WEB-INF下。为什么在它下面，因为它是对用户不公开的，外来用户无法访问，更安全。
 
 首先我们还是来改一下它模板给我们的版本（初始太低了）。它可以从我们之前学习springmvc创建的项目中直接拷贝它。
@@ -328,14 +326,174 @@ domain（实体类的）
 
 OK，这样我们就可以继续具体编写配置文件了。
 
-
-
 ## 5、具体编写配置文件
 
 首先先写springmvc这个，内容少，简单一点
 
 ### springmvc配置文件
 
-我们要用注解方式来写springmvc项目，那**注解的组件扫描器**必不可缺呀！
+我们要用注解方式来写springmvc项目，那**1、注解的组件扫描器**必不可缺呀！
 
-所以我们第一步要先声明组件扫描器，指定扫描controller包下的（全类名）
+所以我们第一步要先声明组件扫描器，指定扫描controller包下的（全类名），和与它配套的**2、视图解析器**（配置前缀和后缀）。
+
+至于这一块为什么要用value来赋值呢？因为它是set注入。这两个属性都是字符串类型的。
+
+![idea64_7ZeBqvfxMt.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_7ZeBqvfxMt.png)
+
+```xml
+//applicationContext.xml
+<!--spring的配置文件-->
+    <context:component-scan base-package="com.bjpowernode.controller"/>
+    <!--视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+```
+
+视图解析器自定义路径，如果没有我们可以自己建一个目录~
+
+最后我们需要**3、注解驱动**（注意这里有很多个，要选结尾是mvc的）
+
+注解驱动的大意大概就是启动注解方式将中央处理器接收到了用户请求转发交给后端处理器。不声明注册它它是不会执行的。
+
+响应ajax请求和解决静态资源访问问题都要用到注解驱动，不用它会产生冲突。
+
+```xml
+<mvc:annotation-driven/>   
+<!--记得它是在外面的，另起一行-->
+```
+
+### spring配置文件
+
+也就是我们放在resources目录下conf下的appplicationContext.xml
+
+**声明数据源，连接数据库**。现在conf下**1、创建一个.properties配置文件**存放jdbc信息。
+
+```properties
+jdbc.url=jdbc:mysql://localhost:3306/mydb?characterEncoding=utf8&useUnicode=true&useSSL=false&autoReconnect=true
+jdbc.username=root
+jdbc.password=xxxx
+```
+
+创建好后，记得在spring配置文件里声明该文件的位置👇
+
+```xml
+<context:property-placeholder location="classpath:conf/jdbc.properties"/>
+```
+
+#### 报错：配置文件识别失败
+
+![idea64_mOuopghkGH.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_mOuopghkGH.png)
+
+问题：resources忘记声明是资源目录了。👆
+
+声明后，🆗
+
+![idea64_yZzzz1SPeq.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_yZzzz1SPeq.png)
+
+**2、声明数据源、连接数据库。**
+
+他有两个**固定的属性需要声明**init-method和destroy-method
+
+```xml
+    <!--声明数据源，连接数据库-->
+    <bean id="DataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+```
+
+写完后先**发布猫部署Deployment该项目**测试一下。（-exploded)
+
+发布成功没问题就可以继续往下写了。
+
+#### 新：【配置文件间】的连接修改
+
+##### 1、创建SqlSessionFactory对象
+
+首先我们本项目中把spring配置文件命名为applicationContext.xml
+
+但这里我们加入了声明数据源并连接数据库的步骤，其实这一步本来是在mybatis主配置文件中进行的。查看声明文档：[MyBatis中文网](https://mybatis.net.cn/getting-started.html)
+
+```xml
+    <!--通过bean标签声明SqlSessionFactoryBean目的是创建SqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="DataSource"/>
+        <property name="configLocation" value="classpath:conf/mybatis.xml"/>
+    </bean>
+```
+
+![chrome_KfTBzH5CeX.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_KfTBzH5CeX.png)
+
+![n1ytn63EdF.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/n1ytn63EdF.png)
+
+##### 2、注册mybatis的扫描器，创建dao接口实现类对象
+
+我们之前讲的mybatis框架dao动态代理是通过测试方法模拟，调用SqlSession对象的静态方法getMapper(dao接口.class)获取到对应的dao接口实现类对象。
+
+现在在该配置文件中通过bean标签方式创建。
+
+![idea64_meOkyERHe1.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_meOkyERHe1.png)
+
+我看了一下，倒2行的那个sqlSessionFactoryBeanName方法就是setter方法，this.x = x，素这样。
+
+```xml
+ <!--声明mybatis的扫描器，创建dao接口实现类对象-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <property name="basePackage" value="com.bjpowernode.dao"/>
+    </bean>
+```
+
+##### 3、service的注解扫描
+
+在spring中通过aop面向切面（AspectJ注解创建代理对象）和注解的方式创建service对象
+
+**复习一下**：spring针对Bean管理中创建对象可以用注解的方式：
+
+![MarkText_QpTbPHtatv.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/MarkText_QpTbPHtatv.png)
+
+开启注解扫描器就知道哪些包下的类需要扫描了。（完成对service对象的创建工作）
+
+```xml
+ <!--声明service的注解@Service所在的包名-->
+    <!--开启该注解扫描-->
+    <context:component-scan base-package="com.bjpowernode.service"/>
+
+    <!--事务配置：可以用注解的配置，也可以用AspectJ配置，二选一-->
+```
+
+🔺**事务配置**：可以用注解的配置，也可以用AspectJ配置，二选一。
+
+可以留到以后配。程序基本调式OK之后再加事务功能也OK
+
+### mybatis的主配置文件
+
+目前有什么：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--spring的配置文件-->
+    <context:property-placeholder location="classpath:conf/jdbc.properties"/>
+    <!--声明数据源，连接数据库-->
+    <bean id="DataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--通过bean标签声明SqlSessionFactoryBean目的是创建SqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="DataSource"/>
+        <property name="configLocation" value="classpath:conf/mybatis.xml"/>
+    </bean>
+</beans>
+```
