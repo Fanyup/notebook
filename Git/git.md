@@ -163,3 +163,9 @@ A改了版本并提交，B也改了版本，但此时Push会失败，因为此�
 ## 认师，加入团队（获取权限）
 
 获取邀请函
+
+# IDEA部署
+
+![idea64_p2tvnlLrs3.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_p2tvnlLrs3.png)
+
+cmd--where git

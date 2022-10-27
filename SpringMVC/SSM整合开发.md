@@ -124,7 +124,7 @@
     <dependency>
       <groupId>org.mybatis</groupId>
       <artifactId>mybatis</artifactId>
-      <version>3.5.1</version>
+      <version>8.0.28</version>
     </dependency>
     <dependency>
       <groupId>mysql</groupId>
@@ -410,7 +410,7 @@ jdbc.password=xxxx
 
 发布成功没问题就可以继续往下写了。
 
-#### 新：【配置文件间】的连接修改
+#### 新：合并细节【配置文件间】的连接修改
 
 ##### 1、创建SqlSessionFactory对象
 
@@ -466,9 +466,9 @@ jdbc.password=xxxx
     <!--事务配置：可以用注解的配置，也可以用AspectJ配置，二选一-->
 ```
 
-🔺**事务配置**：可以用注解的配置，也可以用AspectJ配置，二选一。
+**事务配置**：可以用注解的配置，也可以用AspectJ配置，二选一。
 
-可以留到以后配。程序基本调式OK之后再加事务功能也OK
+可以留到以后配。程序基本调式OK之后再加事务功能也OK。到这里我稍微去温习了一下spring的事务内容，注解是我们常用的，在spring配置文件中声明后可以通过在类上加注解方式配置事务。
 
 ### mybatis的主配置文件
 
@@ -496,4 +496,428 @@ jdbc.password=xxxx
         <property name="configLocation" value="classpath:conf/mybatis.xml"/>
     </bean>
 </beans>
+```
+
+### 至此，程序基本骨架写好了
+
+![idea64_H0EPRv4za0.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_H0EPRv4za0.png)
+
+（我们把它放到Git服务器上），接下来可以写代码了。
+
+## 6、开始写代码
+
+功能代码写两个：查询和添加数据
+
+- dao接口
+
+- sql映射文件（mapper文件）执行sql代码
+
+- controller后端控制器接受请求
+
+- service接口处理业务逻辑（接口的实现）(spring)，及它的实现类
+
+### 1、domain和dao目录部分
+
+**1、先写实体类Student**（实体类就是储存数据的）
+
+```java
+public class Student {
+    private Integer id;
+    private String name;
+    private Integer age;//及它的getter和setter方法
+```
+
+2、dao接口写抽象方法；
+
+```java
+public interface StudentDao {
+    int insertStudent(Student student);//传输实体类中的参数，set传值
+    List<Student> selectStudents();//查询，无需传参
+}
+```
+
+3、写**该dao接口的**mapper文件（注意这里：还得去从刚刚的doc官方文档找一下规范）
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bjpowernode.dao.StudentDao">
+    <select id="selectStudents" resultType="Student">
+        select id,name,age from student order by id desc
+    </select>
+
+    <insert id="insertStudent">
+        insert into student(name,age) values(#{name},#{age})
+    </insert>
+</mapper>
+```
+
+#### 关键细节展示
+
+编写mapper文件
+
+![idea64_9YhZlqtams.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_9YhZlqtams.png)
+
+![idea64_Bjs02l1TDQ.png](C:\Users\up\AppData\Roaming\marktext\images\b72162609349bb4821fd352f2e7732b7e3c76afa.png)
+
+### 2、service目录部分
+
+service接口：
+
+```java
+public interface StudentService {
+    int addStudent(Student student);
+    List<Student> findStudent();
+}
+```
+
+写service接口及它的实现类时的小技巧👇
+
+![hGFGFqWtzq.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/hGFGFqWtzq.png)
+
+**4、service实现类细节**：
+
+```java
+//用注解快速创建Service对象
+@Service
+public class StudentServiceImpl implements StudentService {
+
+    //引用类型【自动注入】@Autowired,@Resource等
+    //就是对象类型属性注入，这样就能赋给service实现类调用的对象属性了
+    //声明dao实现类对象
+    @Resource
+    //该接口的创建已在刚刚applicationContext.xml中bean声明创建了
+    private StudentDao studentDao;
+
+    @Override
+    public int addStudent(Student student) {
+        //调用dao实现类对象的方法
+        int nums = studentDao.insertStudent(student);
+
+        return 0;
+    }
+
+    @Override
+    public List<Student> findStudent() {
+
+        return studentDao.selectStudents();
+    }
+```
+
+#### 新：合并细节【service实现类】
+
+之前我们在学习mybatis时只是用测试类中的测试方法实现，现在SSM合并之后测试方法就“演变”成了service实现类（提供给业务逻辑层）。
+
+### 3、controller部分和jsp文件
+
+controller目录下创建了一个StudenController后端控制器类。
+
+@Resource自动注入**可根据名称**注入对象属性，**也可以根据对象类型**注入。
+
+```java
+//别忘了加controller注解，否则它只是一个普通类
+@Controller
+//合并前缀
+@RequestMapping("/student")
+public class StudentController {
+    @Resource
+    //声明service,自动注入创建接口实现类对象
+    private StudentService service;
+    //注册学生
+    @RequestMapping("/addStudent.do")
+    public ModelAndView addStudent(Student student){
+        ModelAndView mv = new ModelAndView();
+        String tips = "注册失败";
+        //调用service处理student
+        int nums = service.addStudent(student);
+        if (nums >0) {
+            //注册成功
+            tips = "学生：" + student.getName() +"注册成功";
+        }
+        //指定结果页面：添加数据+视图
+        mv.addObject("tips",tips);
+        mv.setViewName("result");//逻辑名称
+        return mv;
+    }
+}
+```
+
+到目前位置有个问题，在哪里注入实体类的属性值？何时用setAttribute注入（写好后要**前端发请求**）
+
+因为返回的视图是逻辑名称，所有要下创建一个jsp
+
+![idea64_2hjE9fcCKf.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_2hjE9fcCKf.png)
+
+```jsx
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+result.jsp 结果页面，注册结果：${tips}
+</body>
+</html>
+```
+
+### 4、前端页面发起请求
+
+在webapp目录下创建index.jsp首页，提供用户操作的功能入口
+
+而不是WEB-INF目录下，因为它下面是对用户不公开的。
+
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    String basePath = request.getScheme() + "://" +
+            request.getServerName() + ":" + request.getServerPort() +
+            request.getContextPath() + "/";
+%>
+<html>
+<head>
+    <title>功能入口</title>
+    <base href="<%=basePath%>"/>
+</head>
+<body>
+    <div align="center">
+    <p>SSM整合的例子</p>
+    <table>
+        <tr>
+            <td><a href="addStudent.jsp">注册学生</a> </td>
+        </tr>
+        <tr>
+            <td><a href="listStudent.jsp">浏览学生</a> </td>
+        </tr>
+    </table>
+    </div>
+</body>
+</html>
+```
+
+猫跑一下效果图如下：
+
+![ApplicationFrameHost_GMKJcJpGLo.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_GMKJcJpGLo.png)
+
+#### 1、编写注册页面
+
+我们想写一个注册页面
+
+![idea64_BRYQvCpLwy.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_BRYQvCpLwy.png)
+
+没有加斜杠开头，因此加个base标签吧！
+
+##### 加base标签：基访问路径（页面中的地址信息）
+
+指定路径：
+
+```html
+<%
+ String basePath = request.getScheme() + "://" + 
+request.getServerName() + ":" + request.getServerPort() + 
+request.getContextPath() + "/";
+%>
+```
+
+再head标签里加上base标签的内容
+
+```html
+<head>
+    <title>注册学生</title>
+    <base href="<%=basePath%>"/>
+</head>
+```
+
+同样的，它加了那首页也得加了。
+
+**前端页面代码中不加斜杠，controller后端处理中是带斜杠的。**
+
+测试问题：
+
+##### 报错一：数据库连接失败
+
+检查后发现pom.xml引入依赖时mysql驱动依赖版本错了，从mybatis笔记中修改后连接成功。
+
+![idea64_8irdP04mRX.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_8irdP04mRX.png)
+
+```xml
+<dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.28</version>
+    </dependency>
+```
+
+##### 报错二：注册失败
+
+草泥马了，一堆错误。一步一步检查后发现dao实现类方法调用返回竟然没调用。
+
+![idea64_ZVKHtTEFFI.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_ZVKHtTEFFI.png)
+
+忘记该返回值了。修改return nums;后大功告成~这回跑猫执行成功了！
+
+![chrome_WH8vOw8rpN.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_WH8vOw8rpN.png)
+
+皇天不负有心人，即使是跟着视频敲的，但还需要稍后自己再推导一遍将知识转换成自己的。以及经验教训是一定要写详细的开发文档，不然久了我真的会忘...
+
+##### 细节：经验教训
+
+我发现数据库里我加了两次相同的数据，也就是说报错二发生时是service层以及成功调用且执行了dao层的sql插入语句方法，只是没有成功返回nums值给最终的结果显示给用户，但插入信息这一步却是成功了的。
+
+![chrome_nIMNKUEjPf.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_nIMNKUEjPf.gif)
+
+用了一下ShareX的GIF录制功能（快捷键设Ctrl+Q)，感谢，伟大的发明...
+
+##### 基本流程回顾
+
+用户访问index.jsp，点击后跳转到addStudent.jsp，用post方式
+
+发起请求（该请求action叫：）student(目录下的)/addStudent.do。而相应后端控制器会接受它并处理（service方法，调用dao接口实现类方法）。...执行完后向用户响应result.jsp（注册成功？注册失败？）
+
+**这里的student/到底是什么**，其实执行后会发现它在url中出现了：
+
+`http://localhost:8080/ch07_ssm/student/addStudent.do`
+
+#### 2、编写查询功能
+
+前端用ajax实现，要加入jq库文件，之前写了有，拷贝一下，创建一个web/appjs目录存放它。（原来之前学springmvc返回值void一直出错是没有导入js文件；其实这里用它的cdn也可以，但是我不会。）
+
+js-3.4.1官方：[右键另存为可用](https://code.jquery.com/jquery-3.4.1.min.js)
+
+它长这样👇
+
+![idea64_G2SXdrTADD.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_G2SXdrTADD.png)
+
+##### 引入jq文件+Controller控制器加处理方法
+
+引入jquery文件，**注意:一定要<></>这么用，不然</>这样是不起作用的！**
+
+```html
+<html>
+<head>
+    <title>查询学生ajax</title>
+    <base href="<%=basePath%>"/>
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+```
+
+Controller类加一个方法处理查询功能，响应ajax
+
+1.pom.xml检查jackson依赖有没有（处理转换json的）
+
+2.springmvc配置文件中有没有加注解驱动？（如果没有加，无法正常处理静态资源）
+
+```java
+ //处理查询，响应ajax
+    @RequestMapping("/queryStudent.do")
+    //不加就不是处理器而是普通类了
+    @ResponseBody
+    public List<Student> queryStudent(){
+        //参数检查，简单的数据处理
+        List<Student> students = service.findStudent();
+        //该结果会被框架转成Json的数组
+        return students;
+    }
+```
+
+测试一下这个对外提供的接口（不是说他是Interface，而是可供外部即用户访问的），直接添加后缀访问，看能不能拿到数据，能拿到说明OK。`http://localhost:8080/ch07_ssm/student/queryStudent.do`
+
+![chrome_rammTsCDsy.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_rammTsCDsy.png)
+
+下面可以放心去写ajax请求了。
+
+##### jsp页面编写
+
+写个btn按钮做个单击事件，点击即查询数据。用Jquery来绑定事件（js库）（不完整，部分）（测试：有弹窗说明连接成功）
+
+```html
+<head>
+    <title>查询学生ajax</title>
+    <base href="<%=basePath%>"/>
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#btnLoader").click(function () {
+                $.ajax({
+                    url:"student/queryStudent.do",
+                    type:"get",
+                    dataType:"json",
+                    success:function (data) {
+                        alert("data="+data);
+                    }
+                })
+            })
+        })
+    </script>
+</head>
+```
+
+##### 404报错：js文件查找失败
+
+跑猫时记得刷新一下，导入jd文件IDEA很可能没有刷新同步，所以控制端网络会报错404找不到js文件
+
+![chrome_VvUJw8brAn.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_VvUJw8brAn.png)
+
+阶段测试成功后可以继续写代码了。
+
+拿到数据后我们就可以解析它了：取出数组数据，注入到tbody中。
+
+![idea64_kmYzXjowkN.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_kmYzXjowkN.png)
+
+```html
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    String basePath = request.getScheme() + "://" +
+            request.getServerName() + ":" + request.getServerPort() +
+            request.getContextPath() + "/";
+%>
+<html>
+<head>
+    <title>查询学生ajax</title>
+    <base href="<%=basePath%>"/>
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#btnLoader").click(function () {
+                $.ajax({
+                    url:"student/queryStudent.do",
+                    type:"get",
+                    dataType:"json",
+                    success:function (data) {
+                        //清除旧的数据
+                        $("#info").html("");
+                        //增加新的数据
+                        $.each(data,function (i,n) {
+                            $("#info").append("<tr>")
+                            .append("<td>"+n.id+"</td>")
+                            .append("<td>"+n.name+"</td>")
+                            .append("<td>"+n.age+"</td>")
+                            .append("</tr>")
+                        })
+                    }
+                })
+            })
+        })
+    </script>
+</head>
+<body>
+    <div align="center">
+        <table>
+            <thead>
+            <tr>
+                <td>学号</td>
+                <td>姓名</td>
+                <td>年龄</td>
+            </tr>
+            </thead>
+            <tbody id="info">
+
+            </tbody>
+            <input type="button" id="btnLoader" value="查询数据"/>
+        </table>
+    </div>
+</body>
+</html>
 ```

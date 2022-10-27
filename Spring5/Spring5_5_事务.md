@@ -147,8 +147,6 @@
 
 ![ApplicationFrameHost_adx94OLZuc.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_adx94OLZuc.png)
 
-
-
 （Mybatis也用到是它）
 
 ### 声明式事务管理
