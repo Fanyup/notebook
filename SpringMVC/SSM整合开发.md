@@ -193,6 +193,8 @@ E:\BaiduNetdiskDownload\01-文档\SpringMVC课程文档
 
 ### 1、注册中央调度器+指定配置文件路径+启动load1
 
+![chrome_Zy6TWNb4wn.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_Zy6TWNb4wn.png)
+
 **注册（创建）中央调度器，指定springmvc配置文件自定义路径，服务器启动时创建中央调度器对象。**
 
 CV大师放一下：
@@ -259,7 +261,7 @@ CV大师放一下：
   </listener>
 ```
 
-我的理解是，有了监听器，你对springmvc容器才能连上spring容器，他俩之间才能进行交互，数据通信。
+我的理解是，有了监听器，~~你对springmvc容器才能连上spring容器，他俩之间才能进行交互，数据通信。~~ 因为是在web.xml下配置的，应该由中央调度器（servlet）来监视后端。
 
 这里我们给 **<mark>spring配置文件命名为：applicationContext.xml；</mark>**
 
@@ -341,8 +343,8 @@ OK，这样我们就可以继续具体编写配置文件了。
 ![idea64_7ZeBqvfxMt.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_7ZeBqvfxMt.png)
 
 ```xml
-//applicationContext.xml
-<!--spring的配置文件-->
+//dispatcherServlet.xml
+<!--springmvc的配置文件-->
     <context:component-scan base-package="com.bjpowernode.controller"/>
     <!--视图解析器-->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
@@ -475,27 +477,25 @@ jdbc.password=xxxx
 目前有什么：
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--设置别名-->
+    <typeAliases>
+        <!--name:一般是实体类所在的包名（不是也可以）-->
+        <package name="com.bjpowernode.domain"/>
+    </typeAliases>
 
-    <!--spring的配置文件-->
-    <context:property-placeholder location="classpath:conf/jdbc.properties"/>
-    <!--声明数据源，连接数据库-->
-    <bean id="DataSource" class="com.alibaba.druid.pool.DruidDataSource"
-          init-method="init" destroy-method="close">
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
-    </bean>
-    <!--通过bean标签声明SqlSessionFactoryBean目的是创建SqlSessionFactory-->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="DataSource"/>
-        <property name="configLocation" value="classpath:conf/mybatis.xml"/>
-    </bean>
-</beans>
+    <!--指定sql映射文件(mapper文件)的位置-->
+    <!--使用package的要求：1.mapper文件名称和dao接口必须完全一样
+        2.mapper文件和dao接口必须在同一目录-->
+    <!--我们准备把它放到dao的路径之中-->
+    <mappers>
+        <package name="com.bjpowernode.dao"/>
+    </mappers>
+</configuration>
 ```
 
 ### 至此，程序基本骨架写好了
@@ -596,7 +596,7 @@ public class StudentServiceImpl implements StudentService {
         //调用dao实现类对象的方法
         int nums = studentDao.insertStudent(student);
 
-        return 0;
+        return nums;
     }
 
     @Override
