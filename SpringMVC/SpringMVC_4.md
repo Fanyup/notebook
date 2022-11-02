@@ -215,5 +215,3 @@ Dispatcherservlet把2中的HandlerExecutionChain中的处理器对象交给了�
 中央调度器拿到返回值交给**视图解析器**。
 
 它的作用是使用前缀、后缀组成视图完整路径。
-
-

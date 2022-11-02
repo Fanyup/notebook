@@ -207,6 +207,12 @@ find模糊搜索+精确搜索
 
 # vim编辑器
 
+x删除
+
+i插入模式
+
+r修改单个字符
+
 vi是早期的东西，vim是增强版
 
 用来查看和编辑文本文件，类似windows里的记事本。
@@ -336,3 +342,25 @@ service 服务名（sshd等） [start|stop|restart|reload|status]
 之前关闭sshd时 用过systemctl启动sshd服务
 
 指令管理服务在/etc（配置文件）/init.d查看
+
+## /查找关键字
+
+n下一个，N上一个
+
+查找一行信息grep 关键字 -n（它会查找第几行）
+
+从文本中查找内容，也能查找命令的结果
+
+## sudo
+
+su（以root账号）do（执行一次）
+
+这样不用直接切换账号
+
+## |
+
+管道服务，从前面的命令中查询等
+
+## 重定向 > out
+
+## systemctl 服务

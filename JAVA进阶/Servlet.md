@@ -105,10 +105,8 @@
     点击这个来部署webapp
     
     ![ApplicationFrameHost_845Greda8g.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_845Greda8g.png)
-
+    
     应用的上下文（根），这里改一下
-    
-    
     
     ![ApplicationFrameHost_PZHDK2VPQf.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/ApplicationFrameHost_PZHDK2VPQf.png)
 

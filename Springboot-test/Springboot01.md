@@ -1,10 +1,14 @@
 # SpringBoot
 
+# 问题
+
+感觉关于spring容器对象创建不是很理解，也就是servlet相关。我理解是获取容器对象后，才能调用容器中的某些java类对象实例，也就是说你不获取spring容器，就像没有指向bean管理的xml文件的，没有spring容器，无从创建对象。
+
 ss需要写大量xml配置文件，还需要配置各种对象，把使用的对象放到spring容器中才能使用对象。
 
 springboot解决了这个痛点，能够实现**spring+springmvc**功能，不需要写它俩的配置文件了。常用的框架和第三方库都已经配置好了。开发效率高。
 
-## 什么是JavaConfig？
+# 1、什么是JavaConfig？
 
 是spring提供的，可以使用Java类当作配置文件来用，**用纯Java方式**来配置创建容器。代替xml配置文件。
 
@@ -93,7 +97,6 @@ public class MyTest {
         System.out.println("student="+student);
     }
 }
-
 ```
 
 **注意：@Bean不指定对象的名称，默认方法名是id**。就是bean标签中的属性id名。你也可以指定它。@Bean(name="定义我")
@@ -143,7 +146,7 @@ public class SpringConfig{
 <import resource="ctasspath:beans.xml"/>
 ```
 
-## 正式入门
+# 2、正式入门
 
 其实springboot就是spring+springmvc，核心还是ioc容器。把对象交给容器创建。（注入）
 
@@ -175,11 +178,9 @@ public class SpringConfig{
 
 springboot也是基于maven管理的，所以会有pom.xml配置文件。
 
-使用[https://start.spring.io](https://start.spring.io)，国外地址失败是可以用https://start.springboot.io镜像地址。不仅可以在IDEA中添加，也可以直接在浏览器栏上输入。它会生成一个zip压缩包Model，可在IDEA中import Model导入它使用~
+使用[https://start.spring.io](https://start.spring.io)，国外地址失败是可以用[https://start.springboot.io](https://start.springboot.io))镜像地址。不仅可以在IDEA中添加，也可以直接在浏览器栏上输入。它会生成一个zip压缩包Model，可在IDEA中import Model导入它使用~
 
 注意：必须实在联网状态下
-
-
 
 方式二：直接maven，不用向导，创建项目。
 
@@ -365,16 +366,18 @@ Settings-encoding改成utf-8应用一下就OK了。（一般要先配置，因�
 
 首先我们并**不推荐**使用JSP，我们用推荐用模板技术，用它作为视图来显示数据和应用交互。**Thymeleaf模板**，以后会讲。
 
-1. 加入一个处理jsp的依赖。负责编译jsp文件
+1. 加入一个处理jsp的依赖。负责编译jsp文件.
+   
+   注意我们用的这个tomcat是springboot内嵌的，所以必须加入它的依赖才行。不是我们自己安装的哪个
    
    ```xml
    <dependency>
-   <groupld>org·apache·tomcat·embed</groupld>
+   <groupld>org·apache.tomcat.embed</groupld>
    <artifactld>tomcat-embed-jasper</artifactld>
    </dependency>
    ```
 
-2. 如果需要使用servley,jsp《jst的功能，还要引入其他依赖项。
+2. 如果需要使用servley,jsp,jstl的功能，还要引入其他依赖项。
    
    ```xml
    <dependency>
@@ -396,16 +399,166 @@ Settings-encoding改成utf-8应用一下就OK了。（一般要先配置，因�
    
    ![idea64_CbvY48d7RT.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_CbvY48d7RT.png)
    
-   ![19LBhmOoE2.png](C:\Users\up\AppData\Roaming\marktext\images\fa3fa6b97826feda3c402186216586c035a974db.png)
-   
-   
+   ![19LBhmOoE2.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/19LBhmOoE2.png)
 
-4. 在Pom.xml指定jsp文件编译后的存放目录
+4. 在Pom.xml指定jsp文件编译后的存放目录（build下）
+   
+   ```xml
+           <!--指定jsp编译compile后的存放目录-->
+           <resources>
+               <resource>
+                   <!--jsp原来的目录-->
+                   <directory>src/main/webapp</directory>
+                   <!--指定编译后的存放目录-->
+                   <targetPath>META-INF/resources</targetPath>
+                   <!--指定处理的目录和文件-->
+                   <includes>
+                       <include>**/*.*</include>
+                   </includes>
+               </resource>
+           </resources>
+   
+       </build>
+   ```
    
    META-INF/resources
+   
+   ![idea64_bSooAnUuTc.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_bSooAnUuTc.png)
 
 5. 创建Controller，访问jsp
+   
+   可以使用servlet的request(HttpServletRequest)的setAttribute传值，也可以用Model传。返回是一个逻辑名称（但不知道为什么这里我**最后测试的失败了报错404，但编译文件能找到**）（注意这个Model类型应选择springboot.ui这个）（如果改了返回视图为“index.jsp"测试会变成了下载）
 
 6. 在application.properties文件中配置视图解析器（前缀后缀那些）
+   
+   ```properties
+   #配置视图解析器
+   #/ = src/main/webapp
+   spring.mvc.view.prefix=/
+   spring.mvc.view.suffix=.jsp
+   ```
 
+## 使用容器
 
+我们以前用spring和springmvc时可以通过监听器、中央调度器等去创建容器，现在springboot里怎么用呢？
+
+我们追溯SpringApplication的静态方法run可以发现，它的接口源头是继承ApplicationContext接口的，它是一个容器，那么执行这个方法就可以获取容器。若我们想获取到容器的对象，.var接收它就OK了。
+
+示例：创建一个service实现类，用注解@Service创建它的对象，现在我们想手工去用它
+
+先创建。再从容器中获取你期望的某个对象。
+
+![chrome_04FA6e3Dkg.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_04FA6e3Dkg.png)
+
+**什么情况用？自己测试的时候**，想看看这个实现类能否用的时候
+
+## CommandLineRunner接口
+
+**在容器对象创建好后**，会创建该接口的方法帮助我们连接数据库等。它有个方法run，参数是字符串。
+
+我们容器对象创建好后，它会自动执行run方法，可以完成自定义的在容器对象创建好的一些操作。
+
+![chrome_1EZhCCYIJb.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_1EZhCCYIJb.png)
+
+上个示例方法：能拿到容器中的某个java对象（没有写出代码）。
+
+# 3、springboot和web组件
+
+## 拦截器
+
+### 回顾一下SpringMVC框架中拦截器
+
+是springmvc中的一种对象。能拦截对Controller的请求。
+
+框架中有系统的拦截器，还可以自定义拦截器。实现对请求预先处理。
+
+实现自定义拦截器：
+
+1. 创建类实现springmvc框架中的HandlerInterceptor接口（它有三个方法pre-post-afterCompletion，它们三个被设置成default，所以不用都实现，用哪个重写哪个，一般pre常用。）（**快捷键Ctrl+i重写**）
+
+2. 在springmvc的配置文件中，声明拦截器`<mvc:interceptors..`
+
+那么在springboot中该如何做呢？
+
+### 在SpringBoot中如何用？
+
+按往常定义好后需要把它加到springmvc容器中才会起作用呀！（就像之前的在配置文件中声明它一样的意思）
+
+创建一个普通类**实现接口WebMvcConfigurger**,**加上注解@Configuration**它才能变成**配置类**
+
+这个接口有很多和springmvc有关的功能，把我们过去对xml配置文件中的配置**移到了这个接口的抽象方法中。（都是default，用哪个实现哪个就好了）**
+
+我们现在拦截器，所以重写Ctrl+i的方法是addInterceptors。 **添加拦截器对象（刚刚建的哪个），注入到容器中。目的是告诉容器拦截器是谁** 
+
+```java
+//创建拦截器对象
+//接口类型来指它的实现类
+@Override
+public void addInterceptor(InterceptorRegistry registry){
+    HandelerInterceptor interceptor = new LoginInterceptor();
+    registry.addInterceptor(interceptor);
+//拦截谁：指定uri地址
+    String path[]= {"/user/login"};
+    registry.addInterceptor(path);
+}
+```
+
+## Servlet
+
+其对象能够处理请求。
+
+1. **创建Servlet类**，继承HttpServlet（创建它的对象）
+
+2. Ctrl+O重写doGet和doPost方法
+
+3. 再**注册**Servlet对象，**创建它的配置类**，让框架能找到它
+   
+   用到**ServletRegistrationBean类**
+   
+   同样写个普通类加上注解@Configuration让它变成配置类。
+   
+   写方法，返回ServletRegistrationBean类对象，第一个参数是Servlet对象，第二个参数 是url地址。（new一个，”/myservlet")，return bean;(别忘了在方法加@Bean注解，才能将创建的对象放到容器中。)
+   
+   他其实还有一个无参构造，通过它的方法setServlet和addUrlMappings方法手工配置~
+
+## Filter过滤器（自定义情况）
+
+使用步骤和上面Servlet十分相似。用到的是**FilterRegistrationBean类**来注册Filter对象。
+
+我们可以对请求参数和应答属性做赋值处理。它是Servlet规范中的过滤器，可以处理请求。（最常用就是处理字符编码utf-8。）
+
+1. 创建自定义过滤器类（就是实现Filter接口）（javax.servlet)
+
+2. 创建配置类，注册Filter过滤器对象
+   
+   通过FilterRegistrationBean类创建Filter对象（和Servlet一样，可传一个或多个参，还可以用无参）
+
+## 字符集过滤器
+
+### 方式一：改注册，不用框架自带
+
+注意哦，它是spingmvc里面的，用它处理post请求和应答乱码问题的。**CharacterEncodingFilter**，spingmvc提供的。
+
+以前在web.xml注册过滤器，配置它的属性。（强制，必须扫描）
+
+这回我知道了，不能每一次settings设置字符串编码方式，因为不同环境编译是不同的，你可以在contentType设置规定它，也可以用框架给我们写好的过滤器。它就叫CharacterEncodingFilter。再调用对象的方法设置编码防止和强迫遍历应答都使用这种编码（两个布尔值都为真）。
+
+它以前虽然是springmvc的东西，但是到springboot中关于Servlet和字符集过滤器的注册可以放在一起说明了（**一个配置类！里面可以用注解@Bean创建多个对象！**）。
+
+**别忘了配置主配置文件.properties**
+
+`server.servlet.encoding.enabled=false`
+
+再springboot中默认已经启用了这个过滤器，默认编码是ISO-8859-1，现在我们重定义了，所以关闭它默认的。
+
+### 方式二：用系统自带过滤器（推荐，简单）
+
+换个思路，能不能用它自有的，而不用再新注册一个过滤器了呢？你也可以这样写：**启用系统自己设置的字符串过滤器**
+
+```properties
+server.servlet.encoding.enabled=true
+#指定使用的编码方式
+server.servlet.encoding.charset=utf-8
+#强制请求request和应答response都是用chartset属性地址
+server.servlet.encoding.force=true
+```
