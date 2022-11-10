@@ -323,7 +323,7 @@ public class MybatisPlusConfig {
         queryWrapper.orderByDesc(Employee::getUpdateTime);
         //执行查询
         employeeService.page(pageInfo,queryWrapper);
-        
+
         return R.success(pageInfo);
 
     }
@@ -419,6 +419,6 @@ public class MybatisPlusConfig {
 
 原因是因为传过来的Id与数据库中id不一致。JS的问题。
 
-**JS只能保证前16位数组，而Long型传过来的值有19位，后3位精度丢失了（被四舍五入处理了）。**
+**JS只能保证前16位数组，而Long型传过来的值有19位，后3位精度丢失了。（被四舍五入处理了）**
 
 **解决办法**：在服务器给页面响应JSON数据时进行处理，**将long型数据统一转为“String字符串”**。这样JS就不会对他进行处理了，因为他是字符串。
