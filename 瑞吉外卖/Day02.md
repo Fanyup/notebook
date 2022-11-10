@@ -353,7 +353,9 @@ public class MybatisPlusConfig {
 
 可以看到，无需返我们写回什么，值是被这个方法自动传入添加的。
 
-搜索[Bejson]([在线JSON校验格式化工具（Be JSON）](https://www.bejson.com/json/format/))，格式化，方便我们查看浏览器返回的响应内容（网络）
+## Bejson校验格式化
+
+搜索[JSON校验格式化工具（Be JSON）](https://www.bejson.com/json/format/)，格式化，方便我们查看浏览器返回的响应内容（网络）
 
 `Ctrl+回车自动查询`
 
@@ -422,3 +424,129 @@ public class MybatisPlusConfig {
 **JS只能保证前16位数组，而Long型传过来的值有19位，后3位精度丢失了。（被四舍五入处理了）**
 
 **解决办法**：在服务器给页面响应JSON数据时进行处理，**将long型数据统一转为“String字符串”**。这样JS就不会对他进行处理了，因为他是字符串！
+
+具体实现：
+
+服务端给页面响应数据时用到了**Spingmvc中一个组件：消息转换器**。现在我们要在配置类里去扩展一个消息转换器。在它中使用提供的**对象转换器进行java对象到json数据**的转换。
+
+而这个对象转换器（网课老师给了，不用我们自己写了）
+
+把它放到common目录下：
+
+```java
+package com.itheima.reggie.common;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+
+/**
+ * 对象映射器:基于jackson将Java对象转为json，或者将json转为Java对象
+ * 将JSON解析为Java对象的过程称为 [从JSON反序列化Java对象]
+ * 从Java对象生成JSON的过程称为 [序列化Java对象到JSON]
+ */
+public class JacksonObjectMapper extends ObjectMapper {
+
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
+
+    public JacksonObjectMapper() {
+        super();
+        //收到未知属性时不报异常
+        this.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        //反序列化时，属性不存在的兼容处理
+        this.getDeserializationConfig().withoutFeatures(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+
+        SimpleModule simpleModule = new SimpleModule()
+                .addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)))
+                .addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)))
+                .addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)))
+
+                .addSerializer(BigInteger.class, ToStringSerializer.instance)
+                //注意：序列化器👇将Long型数据转成String字符串
+                .addSerializer(Long.class, ToStringSerializer.instance)
+                .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)))
+                .addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)))
+                .addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
+
+        //注册功能模块 例如，可以添加自定义序列化器和反序列化器
+        this.registerModule(simpleModule);
+    }
+}
+```
+
+扩展消息转换器（不扩展是用springmvc默认提供的）我们现在扩展它，在把这个对象转换器注入到里面去，相当于扩充、自定义了。
+
+**注意：是在之前config目录下的WebMvcConfig配置类下扩展。**
+
+重写该父类里面一个方法。
+
+![explorer_SDZNipsFdl.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/explorer_SDZNipsFdl.png)
+
+```java
+ //扩展mvc框架的消息转换器（实际上默认自带了几个）
+    @Override
+    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        log.info("扩展消息转换器...");
+        //创建一个新的消息转换器对象
+        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+        //设置对象转换器，底层使用Jackson将Java对象转为json
+        messageConverter.setObjectMapper(new JacksonObjectMapper());
+        //将上面的消息转换器对象追加到mvc框架的转换器容器（就是一个集合）中
+        converters.add(0,messageConverter);//有优先级，0优先使用
+    }
+```
+
+它在mvc配置类里面，也就是说，在这个项目启动时就会被调用（之前那个dispatcherServlet中央调度器，还记得吗，一启动就会on-load加载Servlet对象）
+
+![idea64_QR082VsBEJ.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_QR082VsBEJ.gif)
+
+# 编辑员工信息
+
+动态通过js方式获取到url参数（get请求）
+
+程序执行操作流程：
+
+![chrome_FNHSLMrZiI.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_FNHSLMrZiI.png)
+
+跳转的页面add.html是对用户开发的公共页面。
+
+解析字符串，动态取出url的值（Js完成）（前端进行url分段处理）
+
+```java
+    //根据id查询员工信息
+    @GetMapping("/{id}")
+    //id变量在整个请求路径里面
+    public R<Employee> getById(@PathVariable Long id){
+        log.info("根据id查询员工信息");
+        Employee employee = employeeService.getById(id);
+        if (employee != null){
+            return R.success(employee);
+        }
+        return R.error("没有查询到对应员工信息");
+    }
+```
+
+![chrome_en0idma7Vx.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_en0idma7Vx.gif)
+
+那个**data**其实就是success方法中将employee对象传到r.data里去了。
+
+注意这里男女性别返回的是标志位，返回的性别并不是男女这两个字。
+
+这里点击保存会发现成功了，我们何是写过这个方法？就是上面写的那个通用的update方法！
