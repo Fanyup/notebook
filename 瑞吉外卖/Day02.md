@@ -549,4 +549,4 @@ public class JacksonObjectMapper extends ObjectMapper {
 
 注意这里男女性别返回的是标志位，返回的性别并不是男女这两个字。
 
-这里点击保存会发现成功了，我们何是写过这个方法？就是上面写的那个通用的update方法！
+这里点击保存会发现成功了，我们何是写过这个方法？就是上面写的那个通用的update方法！！
