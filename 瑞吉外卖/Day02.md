@@ -179,7 +179,7 @@ username重复，即账号已存在的报错。
 
 基于底层代理，代理controller
 
-在common目录下写一个新的普通类，加上**@ControllerAdvice注解**让它变得不同。(指定拦截哪些Controller，預設對所有Controller 生效，也可以指定特定的)
+在common目录下写一个新的普通类，加上 **@ControllerAdvice注解**让它变得不同。(指定拦截哪些Controller，預設對所有Controller 生效，也可以指定特定的)
 
 注解细节使用查询：[这里面对于常用注解还挺详尽的](https://ithelp.ithome.com.tw/m/articles/10270418#:~:text=%40RestController%20%3A%20%E4%BD%9C%E7%94%A8%E7%9B%B8%E7%95%B6%E6%96%BC%40,%E5%85%AD%E5%80%8B%E9%87%8D%E8%A6%81%E7%9A%84%E5%8F%83%E6%95%B8%E3%80%82)
 
@@ -214,6 +214,211 @@ username重复，不唯一！
 
 接下来**完善它**：查询检索error报错信息中的关键字。
 
+```java
+//异常处理方法，拦截异常
+    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+    public R<String> exceptionHandler(SQLIntegrityConstraintViolationException ex){
+        log.error(ex.getMessage());
+        if(ex.getMessage().contains("Duplicate entry")){
+            //用split以看空格为分界符进行字符串拼接
+            String[] split = ex.getMessage().split(" ");
+            String msg = split[2] + "已存在";
+            return R.error(msg);
+        }
+        return R.error("未知错误");
+    }
+```
+
 现在基本使用请求-响应模式了。
 
 # 员工信息分页查询
+
+过滤条件+分页查询
+
+mybatis-plus提供了一个分页插件
+
+创建一个配置类：
+
+```java
+//配置分页插件(interceptor”拦截器“)
+@Configuration
+public class MybatisPlusConfig {
+
+    //DI注入依赖（组件），让Spring来管理它
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
+        mybatisPlusInterceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        return mybatisPlusInterceptor;
+    }
+}
+```
+
+接下来写controller处理层了（接收页面发送参数请求等）
+
+![idea64_Fppp6kYHbJ.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_Fppp6kYHbJ.png)
+
+前端返回属性名让我们看清它想要干嘛：
+
+![idea64_qd8gpK2wYV.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_qd8gpK2wYV.png)
+
+也就是页面需要拿到的数据。由Controller转为json后返回给前端它就正好能够取到。
+
+![idea64_WqlwukH4Lw.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_WqlwukH4Lw.png)
+
+页面需要什么数据，我们就给它什么数据。通过下面请求发送可以知道我们的controller中要传入什么参数（page默认值1,当前页面1。pageSize为10，查10条）
+
+![chrome_TPhIRKYLHx.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_TPhIRKYLHx.png)
+
+情况2，如果用查询框时，get请求还会多发一个我们输入的自定义的name属性
+
+写好大框架后：**记得，每步完成先测试！先搭大框架。** 走一步算一步而不用要等到最后一起，因为你不知道你的错误发生在哪里。这里我们搭建好框架后先用日志测试一下能否接收到传入参数信息。
+
+```java
+//员工信息分页查询
+    @GetMapping("/page")//Restful风格
+    public R<Page> page(int page, int pageSize,String name){
+        //占位符一一对应
+        log.info("page = {},pageSize = {},name = {}",page,pageSize,name);
+        return null;
+    }
+```
+
+成功获取请求，日志成功输出，参数封装没有问题。**注意：这里我总是忘记，如果你想debug断点调式就不能用正常允许，应该走debug模式才可以**。
+
+### 搭好大框架后的具体代码
+
+因为没有学过Mybatis-Plus，我理解这里创建条件构造器时构造了一个LambdaQueryWrapper类的对象，wrapper有封装皮，包纸的意思（这里要指定泛型，后面加了）。而且我们前面在根据用户名查询数据库时也用到了这个对象，之前我们调用的是该对象的**eq方法，它是等值查询，对于sql就是where name=...**
+
+这里我们添加过滤条件，也和数据库相关sql代码有关，这里我们建议**使用like，也就是相似度查询。**
+
+![idea64_eakdNr4hEC.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_eakdNr4hEC.png)
+
+细节：
+
+![idea64_0ZYtSVZhc1.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_0ZYtSVZhc1.png)
+
+它的作用是，指定当name不等于空时，才会添加这句代码👆
+
+这里我们**执行查询统统都用employeeService这个东东，调用它的方法了！** 它是什么东东呢？它是我们**最开始在controller类中DI注入的对象类型属性，它是我们定义的EmployeeService接口的对象（不是实现类，因为这里体现了多态）该接口继承IService这个父接口，查看它会发现里面有N多封装好的sql语句**（也就是说Mybatis-Plus帮我们封装好了，不需要我们再去与dao层和mapper层打交道）（其中注意：里面添置了很多Spring框架注解@Transational“事务”）
+
+这里我怕我自己忘了，再重复一下@Bean注解和@Autowired注解两个是不一样功能的。前者是方法组件（声明）注入，后者是属性对象（常用）注入。
+
+![idea64_W7YMigJ5Jv.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_W7YMigJ5Jv.gif)
+
+```java
+ //员工信息分页查询
+    @GetMapping("/page")//Restful风格
+    public R<Page> page(int page, int pageSize,String name){
+        //占位符一一对应
+        log.info("page = {},pageSize = {},name = {}",page,pageSize,name);
+
+        //构造分页构造器（就是Page对象）
+        Page pageInfo = new Page(page,pageSize);//第一页，查10条
+        //条件构造器where name = ..动态封装过滤条件的，条件也可以没有（非默认）
+        LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper();
+        //添加过滤条件
+        queryWrapper.like(StringUtils.isNotEmpty(name),Employee::getName,name);
+        //添加排序条件
+        queryWrapper.orderByDesc(Employee::getUpdateTime);
+        //执行查询
+        employeeService.page(pageInfo,queryWrapper);
+        
+        return R.success(pageInfo);
+
+    }
+```
+
+不需要接收它，它内部会返回给PageInfo对象相应的records，total等等。
+
+一共创建了两个对象：Page对象（实现page分页功能，也就是那个插件，mybatis-plus帮我们封装好的）和LambdaQueryWrapper对象（我理解是调用sql语句的）
+
+## 问题：debug小插曲
+
+我打好断点后debug执行时发现它并没有弹出经过，检查后发现是将断点打再了方法最上面的@GetMapping上，这时候红色的断点小表示也变成了禁用。因为先前没用过断点方式很熟练，所以我理解这里的问题是断点阶段了get发送的分页请求，需要手动申请通过，打在方法里后就解决了这个问题。
+
+我在这儿还学到一个妙招，（其实不算）就是控制台在debug间切换的东西👇
+
+![idea64_NGsTXYHRJS.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_NGsTXYHRJS.gif)
+
+重点看查询结构：limit分页 orderby..DESC降序查询（添加到排序条件）
+
+![idea64_GxcJM9mUaj.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_GxcJM9mUaj.gif)
+
+重重点来看一下pageInfo对象里现在传入了什么值：👇
+
+光标I放在它上面可以默认识别到的
+
+![idea64_YW6sNmN1fx.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_YW6sNmN1fx.gif)
+
+可以看到，无需返我们写回什么，值是被这个方法自动传入添加的。
+
+搜索[Bejson]([在线JSON校验格式化工具（Be JSON）](https://www.bejson.com/json/format/))，格式化，方便我们查看浏览器返回的响应内容（网络）
+
+`Ctrl+回车自动查询`
+
+![chrome_ViD6QMndZQ.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_ViD6QMndZQ.gif)
+
+# 启用/禁用员工账号
+
+注意：只有管理员admin才有权限。账户状态与status有关。普通用户（员工）是没有权限的。
+
+请求方式：PUT
+
+请求携带参数：id和status（注意，是以JSON的形式）
+
+前端是如何发送AJAX请求的呢？
+
+![chrome_Inqjm4ZKjr.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_Inqjm4ZKjr.png)
+
+上面我说错了，是emabled...这个方法封装到了一个JSON文件当中。
+
+本质上是**sql语句更新update操作**（0禁用，1正常）
+
+我们希望在controller里做一个方法，它是一个**通用的update操作**，这样再以后【编辑】【启用】等操作时就能复用它了。
+
+还是老规矩：搭简单整体框架测试一下：
+
+```java
+//根据id修改员工信息
+    @PutMapping
+    public R<String> update(@RequestBody Employee employee){
+        log.info(employee.toString());
+        return null;
+    }
+```
+
+温习：传入的是json格式的对象类型属性，所以需要加入注解@RequestBody！
+
+点击禁用，前端请求传的值只有id和status，我们后台打印日志可以看出是接收到了它的。
+
+![chrome_O04LhwIgRi.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_O04LhwIgRi.gif)
+
+## 搭好大框架后的具体代码
+
+记得：默认Object，向下强制转换成Long型，因为setUpdateUser()方法只接收Long型
+
+```java
+    //根据id修改员工信息
+    @PutMapping
+    public R<String> update(HttpServletRequest request,@RequestBody Employee employee){
+        log.info(employee.toString());
+        //具体完善
+        //记得：默认Object，向下强制转换成Long型，因为setUpdateUser()方法只接收Long型
+        Long empId = (Long) request.getSession().getAttribute("employee");
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(empId);//当前登录用户，可以通过当前session获取~
+        employeeService.updateById(employee);
+        return R.success("员工信息修改成功");
+    }
+```
+
+## 问题：JS精度丢失
+
+按照这个代码出现问题：未匹配到记录——Updates:0(未更新成功)
+
+原因是因为传过来的Id与数据库中id不一致。JS的问题。
+
+**JS只能保证前16位数组，而Long型传过来的值有19位，后3位精度丢失了（被四舍五入处理了）。**
+
+**解决办法**：在服务器给页面响应JSON数据时进行处理，**将long型数据统一转为“String字符串”**。这样JS就不会对他进行处理了，因为他是字符串。
