@@ -212,4 +212,32 @@ yaml配置文件忘记修改数据库密码了...
 
 ![MySQLWorkbench_d9QJhA82PR.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/MySQLWorkbench_d9QJhA82PR.png)
 
+### 问题：关于前端请求发送超时问题
 
+![chrome_IyQcRg2ICT.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_IyQcRg2ICT.png)
+
+默认10s未得到响应即为超时，但我们在后面的debug断电调式中经常要很长的时间，所以需要修改它。
+
+登录成功后返回的数据会会存到（应用下）浏览器本地storage(储存）中。返回的是json格式数据。
+
+![idea64_xkVsYz1CaP.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_xkVsYz1CaP.gif)
+
+## 后台系统退出功能
+
+```java
+ //员工退出
+    @PostMapping("/logout")
+    public R<String> logout(HttpServletRequest request){
+        //清理Session中保存的当前登录员工的id
+        request.getSession().removeAttribute("employee");
+        return R.success("推出成功");
+    }
+```
+
+注意：session会话存储与浏览器本地storage存储是两个东西！它之所以浏览器显示没了是因为前端代码中我们声明：当ajax请求成功删除方法code=1时，也会执行logout方法，删除它。
+
+![chrome_2Jh92oIvo8.gif](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_2Jh92oIvo8.gif)
+
+![idea64_pROaqyluj7.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_pROaqyluj7.png)
+
+静态页面更新可以用dev-tools插件工具的热更新Ctrl+Fn+F9
