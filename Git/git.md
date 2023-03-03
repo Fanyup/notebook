@@ -169,3 +169,13 @@ A改了版本并提交，B也改了版本，但此时Push会失败，因为此�
 ![idea64_p2tvnlLrs3.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_p2tvnlLrs3.png)
 
 cmd--where git
+
+# IDEA项目上传到github（含修改教程）
+
+参见教程[本地idea上创建的项目上传到github仓库中](https://blog.csdn.net/AdminGuan/article/details/102633474)
+
+## 关于上传超时问题
+
+TIME OUT报错时间推迟到1分钟就OK了。多试几次
+
+![idea64_VmwBOwgmlp.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_VmwBOwgmlp.png)

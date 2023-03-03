@@ -49,3 +49,5 @@ settings.xml配置阿里镜像+jdk版本：[Maven配置阿里云镜像与JDK编�
 - mvn dependency:tree 打印整个依赖树
 
 - mvn jetty:run 调用 Jetty 插件的 Run 目标在 Jetty Servlet 容器中启动 web 应用
+
+# 

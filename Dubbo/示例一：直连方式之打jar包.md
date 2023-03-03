@@ -467,3 +467,23 @@ web.xml👇
 这也解释了为什么我上面报的错是请求超时而不是👇这个了：
 
 ![idea64_qXipCbXIdn.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_qXipCbXIdn.png)
+
+**实体对象在网络上传输必须序列化**
+
+![idea64_qGqpAc5ynW.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_qGqpAc5ynW.png)
+
+重新依次启动，成功了👇
+
+![chrome_WDvbMnFAnC.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/chrome_WDvbMnFAnC.png)
+
+(一般图床图片上传Github仓库失败，可以预先登录Github网站试试)
+
+官方推荐必须有一个接口工程，它就是一个Maven javaa工程
+
+要求接口工程里存放的内容如下：
+
+1. 对外暴露的服务接口(service接口)
+
+2. 实体Bean对象
+
+所以我们不能直接调用，而是通过RPC远程调用过程这个方法协议，这里就是dubbo所推荐的自己的协议。
