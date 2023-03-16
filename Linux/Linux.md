@@ -1,3 +1,7 @@
+## Linux Ctrl+L 快速清屏
+
+## 清空当前输入 ctrl + u
+
 ## Ubuntu
 
 远程窗口（终端窗口端）连接服务器（类似cmd）

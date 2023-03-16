@@ -29,5 +29,3 @@ jdk-8u191-linux-x64.tar.gz👉去Oracle官方下载。
 xftp传输文件，xshell解压
 
 黑马教程linux安装redis整理笔记参考👉[Vz-Blog](https://www.oz6.cn/articles/58)
-
-
