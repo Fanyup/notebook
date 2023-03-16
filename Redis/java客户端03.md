@@ -39,9 +39,7 @@
 4. 测试string
    
    ![idea64_S5KkCruvNt.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_S5KkCruvNt.png)
-   
-   
-   
+
    **soutv输入一个值value，快捷键。**
 
 1. 释放资源
@@ -224,4 +222,4 @@ class RedisDemoApplicationTests {
 
 **快捷键Ctrl+H**可以查看该接口的是实现类细节。
 
-注意：一点要选中该接口再点Ctrl+H才能找到对应的。
+注意：一点要选中该接口再点Ctrl+H才能找到对应的！
