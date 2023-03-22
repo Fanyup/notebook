@@ -223,3 +223,144 @@ class RedisDemoApplicationTests {
 **快捷键Ctrl+H**可以查看该接口的是实现类细节。
 
 注意：一点要选中该接口再点Ctrl+H才能找到对应的！！
+
+需要去改变redistemplate的serializer序列化，key一般用srting来写，值一般用json来写。
+
+### 解决：自定义RedisTemplate的序列化方式
+
+```java
+@Configuration
+public class RedisConfig {
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory){
+        //创建RedisTemplate对象
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        //设置连接工厂
+        template.setConnectionFactory(connectionFactory);
+        //创建JSON序列化工具
+        GenericJackson2JsonRedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
+        //设置Key的序列话
+        template.setKeySerializer(RedisSerializer.string());
+        template.setHashKeySerializer(RedisSerializer.string());
+        //设置Value的序列化
+        template.setValueSerializer(jsonRedisSerializer);
+        template.setHashValueSerializer(jsonRedisSerializer);
+        //返回
+        return template;
+    }
+}
+```
+
+添加后，返回测试类，给注入的RedisTemplate加一个泛型`<String, Object>`
+
+### 问题：connectionFactory爆红
+
+系统提示说找不到，我在pom.xml中降低了springboot的版本，刷新重载后问题解决。
+
+### 问题：运行出错时学会看报错原因
+
+![idea64_VFzgKR3cDw.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_VFzgKR3cDw.png)
+
+causedby告诉我们他缺少一个json的依赖。
+
+`Bean instantiation via factory method failed;`
+
+bean通过工厂方法实例化失败。
+
+```xml
+<!--json依赖-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+```
+
+事实上在平时的工作时是不需要我们手动引入的，因为平时我们使用springmvc，会自动帮我们引入它。
+
+测试成功。
+
+### 测试能否传入一个java对象
+
+首先创建一个User类👇
+
+```java
+@Data
+@NoArgsConstructor  //无参构造
+@AllArgsConstructor //有参构造
+public class User {
+    private String name;
+    private Integer age;
+}
+```
+
+接下来再编写一个单元测试：
+
+```java
+@Test
+    void testSaveUser(){
+        //写入数据
+        redisTemplate.opsForValue().set("user:100", new User("虎哥", 21));
+        //获取数据(强转Object为User类)
+        User o = (User) redisTemplate.opsForValue().get("user:100");
+        System.out.println("o = " + o);
+    }
+```
+
+测试成功👇
+
+![idea64_AXGLPEqkII.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_AXGLPEqkII.png)
+
+我们要求key为string字符串格式，而值的话就随意了。
+
+### 优化问题：解决自动化序列化内存占用问题（推荐使用实践方案）
+
+我们明明没有要求，可是存入时它自动夹入了私货：User的Class字节码也被它加进去了！仔细观察上图可以发现问题：这个字节码本身占用的内存空间，甚直比数据本身还要大！不过不使用它，它就无法帮我们自动反序列化。
+
+优化方法：不适用JSON序列化器来处理value，而是**统一使用String序列化器**，要求只能处理String类型的字符串。若要储存java对象，**则必须手动完成对象的序列化和反序列化。**
+
+String默认提供了一个StringRedisTemplate类，因此不需要我们重新再修改原先的RedisTemplate了！因为它的key和value默认序列化方式就是String方式。
+
+这样，**仅是多加了两行手动代码，就帮我们优化了内存占用的问题**，大大提升了运行效率。
+
+复制一份test测试类，修改注入👇及下面同样需要修改的地方。
+
+```java
+@Resource
+    private StringRedisTemplate stringRedisTemplate;
+```
+
+```java
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    @Test
+    void testSaveUser() throws JsonProcessingException {
+       //创建对象
+        User user = new User("胡戈尔", 21);
+        //手动序列化
+        String json = mapper.writeValueAsString(user);
+        //写入数据
+        stringRedisTemplate.opsForValue().set("user:200", json);
+        //获取数据（强转不了，因为默认取出来一定是一个字符串）
+        String jsonUser = stringRedisTemplate.opsForValue().get("user:200");
+        //手动反序列化
+        User user1 = mapper.readValue(jsonUser, User.class);
+        System.out.println("user1 = " + user1);
+    }
+```
+
+![idea64_YKtawLE4pf.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_YKtawLE4pf.png)
+
+### 补充知识点：测试哈希结构的用法
+
+```java
+@Test
+    void testHash(){
+        stringRedisTemplate.opsForHash().put("user:400", "name", "湖广");
+        stringRedisTemplate.opsForHash().put("user:400", "age", "23");
+        //取
+        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries("user:400");
+        System.out.println("entries = " + entries);
+    }
+```
+
+![idea64_vwLka9rVCH.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_vwLka9rVCH.png)
