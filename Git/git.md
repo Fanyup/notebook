@@ -179,3 +179,42 @@ cmd--where git
 TIME OUT报错时间推迟到1分钟就OK了。多试几次
 
 ![idea64_VmwBOwgmlp.png](https://raw.githubusercontent.com/Fanyup/cloudimg/master/img/idea64_VmwBOwgmlp.png)
+
+## .gitignore忽略文件
+
+[忽略文件.gitignore的使用](https://www.jianshu.com/p/a09a9b40ad20)
+
+省略中间文件如.class等，以及.idea等，具体不知道用拿一些，可以直接照搬原大佬提供的代码👇
+
+```java
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+```
+
+## 上传全流程详细教程
+
+[点我](https://www.bilibili.com/video/BV1MU4y1Y7h5?p=23&vd_source=baf5a4288b31a243832175ddb5cbd481)
+
+实践检验证明果然上传到本地远程仓库的话使用ssh加密传输更稳定，html由于网络问题非常容易失败出错。
